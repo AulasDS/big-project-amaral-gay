@@ -16,16 +16,14 @@ export default function NavBar() {
                             <Link className={styles.navLink} to="/">Home</Link>
                         </li>
                         <li className={styles.navItem}>
-                            <Link className={styles.navLink} to="/produtos/">Produtos</Link>
+                            <Link className={styles.navLink} to="/produtos/">Musicas</Link>
                         </li>
                         
                         {/* 👇 NOVOS LINKS ADICIONADOS AQUI 👇 */}
                         <li className={styles.navItem}>
-                            <Link className={styles.navLink} to="/clientes">Clientes</Link>
+                            <Link className={styles.navLink} to="/clientes">Cantores</Link>
                         </li>
-                        <li className={styles.navItem}>
-                            <Link className={styles.navLink} to="/compras">Compras</Link>
-                        </li>
+
                     </ul>
                 </div>
             </div>

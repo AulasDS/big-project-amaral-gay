@@ -7,7 +7,7 @@ import InserirProduto from './pages/InserirProduto';
 import EditarProduto from './pages/EditarProduto';
 import ListaCliente from './pages/ListaCliente';
 import InserirCliente from './pages/InserirCliente';
-import CompraProduto from './pages/CompraProduto';
+import CompraProduto from './pages/Addmusica';
 import ListaCompras from './pages/ListaCompras'; // 👈 1. Importe a nova página aqui
 
 function App() {

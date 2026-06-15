@@ -23,11 +23,11 @@ export default function InserirProduto() {
     return (
         <div className="d-flex justify-content-center mt-5 align-items-center">
             <div className="card shadow-sm p-4 w-100" style={{ maxWidth: '450px', borderRadius: '12px' }}>
-                <h2 className="text-center mb-4 text-secondary fw-semibold">Inserir Produto</h2>
+                <h2 className="text-center mb-4 text-secondary fw-semibold">ADD Musica</h2>
 
                 <form onSubmit={handleSubmit} className="d-flex flex-column gap-3">
                     <div>
-                        <label className="form-label text-muted small fw-medium">Nome do Produto</label>
+                        <label className="form-label text-muted small fw-medium">Nome da Musica</label>
                         <input
                             type="text"
                             className="form-control form-control-lg fs-6"
@@ -37,25 +37,15 @@ export default function InserirProduto() {
                         />
                     </div>
 
-                    <div>
-                        <label className="form-label text-muted small fw-medium">Preço (R$)</label>
-                        <input
-                            type="number"
-                            className="form-control form-control-lg fs-6"
-                            placeholder="0.00"
-                            name="preco"
-                            step="0.01"
-                            required
-                        />
-                    </div>
 
                     <div>
-                        <label className="form-label text-muted small fw-medium">Quantidade</label>
+                        <label className="form-label text-muted small fw-medium">Tempo</label>
                         <input
-                            type="number"
+                            type="text"
                             className="form-control form-control-lg fs-6"
-                            placeholder="Ex: 10"
-                            name="quantidade"
+                            placeholder="Ex: 02:30"
+                            name="tempo"
+                            pattern="[0-9]{1,2}:[0-9]{2}"
                             required
                         />
                     </div>
