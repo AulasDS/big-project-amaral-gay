@@ -47,11 +47,21 @@ export default function NavBar() {
                 <div className={styles.menu}>
                     <ul className={styles.navList}>
                         <li className={styles.navItem}>
+<<<<<<< HEAD
+                            <Link className={styles.navLink} to="/">Home</Link>
+                        </li>
+                        <li className={styles.navItem}>
+                            <Link className={styles.navLink} to="/produtos/">Musicas</Link>
+=======
                             <Link className={styles.navLink} to="/">Início</Link>
+>>>>>>> master
                         </li>
                         
                         {/* Álbuns */}
                         <li className={styles.navItem}>
+<<<<<<< HEAD
+                            <Link className={styles.navLink} to="/clientes">Cantores</Link>
+=======
                             <Link className={styles.navLink} to="/albuns">Álbuns</Link>
                         </li>
                         <li className={styles.navItem}>
@@ -80,7 +90,9 @@ export default function NavBar() {
                         </li>
                         <li className={styles.navItem}>
                             <Link className={styles.navLink} to="/inserir-usuario">Novo Usuário</Link>
+>>>>>>> master
                         </li>
+
                     </ul>
                 </div>
             </div>
