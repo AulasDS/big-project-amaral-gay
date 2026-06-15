@@ -17,7 +17,11 @@ export default function Home() {
     axios.get('http://localhost:5000/album') // Ajuste a porta da sua API se necessário
       .then(response => setAlbuns(response.data))
       .catch(err => console.error("Erro ao buscar álbuns", err));
+
+
+      
   }, []);
+  
 
   return (
     <>
