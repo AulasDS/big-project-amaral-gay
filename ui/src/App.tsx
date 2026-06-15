@@ -8,6 +8,8 @@ import GerenciarMusicas from './pages/GerenciarMusicas';
 import FormularioMusica from './pages/FormularioMusica';
 import GerenciarPlaylists from './pages/GerenciarPlaylist';
 import FormularioPlaylist from './pages/FormularioPlaylist';
+import GerenciarUsuarios from './pages/GerenciarUsuarios';
+import FormularioUsuario from './pages/FormularioUsuario';
 
 function App() {
   return (
@@ -21,21 +23,21 @@ function App() {
         <Routes>
           <Route path='/' element={<Home />} />
           
-          {/* Álbuns */}
           <Route path='/albuns' element={<GerenciarCadastro />} />
           <Route path='/inserir-album' element={<FormularCadastro />} />
 
-          {/* Músicas */}
           <Route path='/musicas' element={<GerenciarMusicas />} />
           <Route path='/inserir-musica' element={<FormularioMusica />} />
 
-          {/* 👇 NOVAS ROTAS DE PLAYLIST 👇 */}
           <Route path='/playlists' element={<GerenciarPlaylists />} />
           <Route path='/inserir-playlist' element={<FormularioPlaylist />} />
+
+          <Route path='/usuarios' element={<GerenciarUsuarios />} />
+          <Route path='/inserir-usuario' element={<FormularioUsuario />} />
         </Routes>
       </main>
 
-      {/* ... Sua barra lateral direita e footer do player continuam iguais aqui embaixo ... */}
+      {/* ... Sua barra lateral direita e footer permanecem idênticos aqui ... */}
       <aside className="sidebar-right">
         <h3>Tocando agora</h3>
         <img className="now-playing-visual" src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&q=80" alt="Foto do Artista" />
