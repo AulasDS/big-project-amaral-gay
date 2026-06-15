@@ -1,48 +1,93 @@
 const Cliente = require('../models/Usuario');
 
 class ClienteController {
+
+    static sendResponse(res, status, message, data = null) {
+        return res.status(status).json({
+            message,
+            ...(data && { data })
+        });
+    }
+
     static async create(req, res) {
         try {
             const { nome, email, nascimento } = req.body;
-            
+
             if (!nome || !email || !nascimento) {
-                return res.status(400).json({ message: "Dados inválidos. Certifique-se de enviar nome, email e nascimento." });
+                return ClienteController.sendResponse(
+                    res,
+                    400,
+                    "Nome, email e nascimento são obrigatórios"
+                );
             }
 
-            const clienteData = {
-                nome,
-                email,
-                nascimento
-            };
+            const newCliente = await Cliente.create({ nome, email, nascimento });
 
-            const newCliente = await Cliente.create(clienteData);
-            return res.status(201).json({ message: 'Cliente criado com sucesso', data: newCliente });
+            return ClienteController.sendResponse(
+                res,
+                201,
+                "Cliente criado com sucesso",
+                newCliente
+            );
 
         } catch (error) {
-            return res.status(500).json({ message: 'Erro ao criar cliente', error: error.message });
+            return ClienteController.sendResponse(
+                res,
+                500,
+                "Erro ao criar cliente",
+                { error: error.message }
+            );
         }
     }
 
     static async getAll(req, res) {
         try {
             const clientes = await Cliente.find();
-            return res.status(200).json({ data: clientes });
+
+            return ClienteController.sendResponse(
+                res,
+                200,
+                "Clientes encontrados",
+                clientes
+            );
         } catch (error) {
-            return res.status(500).json({ message: 'Erro ao encontrar clientes', error: error.message });
+            return ClienteController.sendResponse(
+                res,
+                500,
+                "Erro ao buscar clientes",
+                { error: error.message }
+            );
         }
     }
 
     static async getById(req, res) {
         try {
             const { id } = req.params;
+
             const cliente = await Cliente.findById(id);
-            
+
             if (!cliente) {
-                return res.status(404).json({ message: 'Cliente não encontrado' });
+                return ClienteController.sendResponse(
+                    res,
+                    404,
+                    "Cliente não encontrado"
+                );
             }
-            return res.status(200).json({ data: cliente });
+
+            return ClienteController.sendResponse(
+                res,
+                200,
+                "Cliente encontrado",
+                cliente
+            );
+
         } catch (error) {
-            return res.status(500).json({ message: 'Erro ao encontrar cliente', error: error.message });
+            return ClienteController.sendResponse(
+                res,
+                500,
+                "Erro ao buscar cliente",
+                { error: error.message }
+            );
         }
     }
 
@@ -50,35 +95,65 @@ class ClienteController {
         try {
             const { id } = req.params;
             const { nome, email, nascimento } = req.body;
-            
-            const updatedData = {
-                nome,
-                email,
-                nascimento
-            };
-            
-            const updatedCliente = await Cliente.findByIdAndUpdate(id, updatedData, { new: true });
-            
+
+            const updatedCliente = await Cliente.findByIdAndUpdate(
+                id,
+                { nome, email, nascimento },
+                { new: true, runValidators: true }
+            );
+
             if (!updatedCliente) {
-                return res.status(404).json({ message: 'Cliente não encontrado' });
+                return ClienteController.sendResponse(
+                    res,
+                    404,
+                    "Cliente não encontrado"
+                );
             }
-            return res.status(200).json({ message: 'Cliente atualizado com sucesso', data: updatedCliente });
+
+            return ClienteController.sendResponse(
+                res,
+                200,
+                "Cliente atualizado com sucesso",
+                updatedCliente
+            );
+
         } catch (error) {
-            return res.status(500).json({ message: 'Erro ao atualizar cliente', error: error.message });
+            return ClienteController.sendResponse(
+                res,
+                500,
+                "Erro ao atualizar cliente",
+                { error: error.message }
+            );
         }
     }
 
     static async delete(req, res) {
         try {
             const { id } = req.params;
+
             const deletedCliente = await Cliente.findByIdAndDelete(id);
-            
+
             if (!deletedCliente) {
-                return res.status(404).json({ message: 'Cliente não encontrado' });
+                return ClienteController.sendResponse(
+                    res,
+                    404,
+                    "Cliente não encontrado"
+                );
             }
-            return res.status(200).json({ message: 'Cliente deletado com sucesso' });
+
+            return ClienteController.sendResponse(
+                res,
+                200,
+                "Cliente deletado com sucesso"
+            );
+
         } catch (error) {
-            return res.status(500).json({ message: 'Erro ao deletar cliente', error: error.message });
+            return ClienteController.sendResponse(
+                res,
+                500,
+                "Erro ao deletar cliente",
+                { error: error.message }
+            );
         }
     }
 }
