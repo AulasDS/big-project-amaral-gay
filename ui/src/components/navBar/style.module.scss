@@ -1,70 +1,264 @@
-/* Variáveis de Cores do Spotify */
-$bg-main: #000000;
-$bg-navbar: #121212;
-$spotify-green: #1ed760;
-$text-white: #ffffff;
-$text-gray: #b3b3b3;
-$bg-hover: #2a2a2a;
-
-.navbar {
-  background-color: $bg-navbar;
-  padding: 1.2rem 2rem;
-  font-family: 'Montserrat', 'Helvetica Neue', sans-serif;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-
-  .container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  .logo {
-    color: $text-white;
-    font-size: 1.5rem;
-    font-weight: 700;
-    text-decoration: none;
-    letter-spacing: -0.5px;
-    transition: color 0.2s ease;
-
-    &:hover {
-      color: $spotify-green;
-    }
-  }
-
-  .menu {
-    .navList {
-      display: flex;
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      gap: 1.5rem;
-    }
-
-    .navItem {
-      display: flex;
-      align-items: center;
-    }
-
-    .navLink {
-      color: $text-gray;
-      text-decoration: none;
-      font-size: 0.9rem;
-      font-weight: 700;
-      padding: 0.5rem 1rem;
-      border-radius: 500px; /* Bordas bem arredondadas estilo Spotify */
-      transition: all 0.2s ease;
-
-      &:hover {
-        color: $text-white;
-        transform: scale(1.04); /* Leve efeito de crescimento ao passar o mouse */
-      }
-
-      /* Estilo opcional se você quiser destacar um link ativo no futuro */
-      &:active {
-        color: $spotify-green;
-      }
-    }
-  }
-}
+/* ==========================================================================
+   VARIÁVEIS DE CORES OFICIAIS DO SPOTIFY
+   ========================================================================== */
+   $bg-black: #000000;       /* Fundo total externo */
+   $bg-base: #121212;        /* Fundo dos cards e painéis */
+   $bg-highlight: #1a1a1a;   /* Cards menores e hovers */
+   $bg-hover: #2a2a2a;       /* Estado de hover nos itens */
+   $spotify-green: #1ed760;  /* Verde oficial */
+   $text-main: #ffffff;      /* Texto principal */
+   $text-muted: #b3b3b3;     /* Texto secundário (cinza) */
+   
+   /* Reset básico para a tela cheia */
+   * {
+     margin: 0;
+     padding: 0;
+     box-sizing: border-box;
+   }
+   
+   body {
+     background-color: $bg-black;
+     color: $text-main;
+     font-family: 'Circular', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+     overflow: hidden; /* Evita barra de rolagem na tela inteira */
+     height: 100vh;
+   }
+   
+   /* ==========================================================================
+      ESTRUTURA DO LAYOUT (IGUAL AO PRINT)
+      ========================================================================== */
+   .spotify-layout {
+     display: grid;
+     grid-template-columns: 280px 1fr 340px; /* Esquerda, Meio, Direita */
+     grid-template-rows: calc(100vh - 90px) 90px; /* Corpo principal e Player */
+     height: 100vh;
+     padding: 8px;
+     gap: 8px;
+     background-color: $bg-black;
+   
+     /* Painel da Esquerda (Sua Biblioteca / Menu) */
+     .sidebar-left {
+       grid-column: 1;
+       grid-row: 1;
+       background-color: $bg-base;
+       border-radius: 8px;
+       padding: 16px;
+       overflow-y: auto;
+     }
+   
+     /* Painel Central (Onde ficam os banners e músicas) */
+     .main-content {
+       grid-column: 2;
+       grid-row: 1;
+       background-color: $bg-base;
+       border-radius: 8px;
+       padding: 24px;
+       overflow-y: auto; /* Só o meio rola para baixo */
+       display: flex;
+       flex-direction: column;
+       gap: 24px;
+   
+       /* Banner Gigante (Zé Neto & Cristiano) */
+       .hero-banner {
+         background: linear-gradient(180deg, #0f4c5c 0%, $bg-highlight 100%);
+         border-radius: 8px;
+         padding: 32px;
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         min-height: 240px;
+       }
+   
+       /* Grid de cards retangulares menores (aleatório, DJ, etc.) */
+       .quick-grid {
+         display: grid;
+         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+         gap: 12px;
+   
+         .quick-card {
+           background-color: rgba(255, 255, 255, 0.1);
+           border-radius: 4px;
+           display: flex;
+           align-items: center;
+           gap: 16px;
+           overflow: hidden;
+           cursor: pointer;
+           transition: background-color 0.3s ease;
+   
+           &:hover {
+             background-color: $bg-hover;
+           }
+   
+           img {
+             width: 64px;
+             height: 64px;
+             object-fit: cover;
+           }
+         }
+       }
+   
+       /* Grid de Cards Quadrados (Seções debaixo: Sextou!) */
+       .section-grid {
+         display: grid;
+         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+         gap: 16px;
+   
+         .music-card {
+           background-color: $bg-highlight;
+           padding: 16px;
+           border-radius: 8px;
+           cursor: pointer;
+           transition: background-color 0.3s ease;
+   
+           &:hover {
+             background-color: $bg-hover;
+           }
+   
+           img {
+             width: 100%;
+             aspect-ratio: 1;
+             object-fit: cover;
+             border-radius: 6px;
+             margin-bottom: 12px;
+           }
+   
+           h4 {
+             font-size: 1rem;
+             margin-bottom: 4px;
+             white-space: nowrap;
+             overflow: hidden;
+             text-overflow: ellipsis;
+           }
+   
+           p {
+             color: $text-muted;
+             font-size: 0.85rem;
+           }
+         }
+       }
+     }
+   
+     /* Painel da Direita (Tocando Agora / Clipe) */
+     .sidebar-right {
+       grid-column: 3;
+       grid-row: 1;
+       background-color: $bg-base;
+       border-radius: 8px;
+       padding: 16px;
+       overflow-y: auto;
+       display: flex;
+       flex-direction: column;
+       gap: 16px;
+   
+       .now-playing-visual {
+         width: 100%;
+         border-radius: 8px;
+         object-fit: cover;
+       }
+     }
+   
+     /* ==========================================================================
+        BARRA DO PLAYER (RODAPÉ FIXO)
+        ========================================================================== */
+     .player-bar {
+       grid-column: 1 / span 3; /* Ocupa as 3 colunas de ponta a ponta */
+       grid-row: 2;
+       background-color: $bg-black;
+       display: flex;
+       justify-content: space-between;
+       align-items: center;
+       padding: 0 16px;
+   
+       /* Lado Esquerdo: Info da música atual */
+       .track-info {
+         display: flex;
+         align-items: center;
+         gap: 12px;
+         width: 30%;
+   
+         img {
+           width: 56px;
+           height: 56px;
+           border-radius: 4px;
+         }
+       }
+   
+       /* Centro: Controles de Play/Pause e Timeline */
+       .player-controls {
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         gap: 8px;
+         width: 40%;
+   
+         .buttons {
+           display: flex;
+           align-items: center;
+           gap: 24px;
+           color: $text-muted;
+   
+           .play-btn {
+             background-color: $text-main;
+             color: $bg-black;
+             border-radius: 50%;
+             width: 32px;
+             height: 32px;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             cursor: pointer;
+             
+             &:hover {
+               transform: scale(1.05);
+             }
+           }
+         }
+   
+         .playback-bar {
+           display: flex;
+           align-items: center;
+           gap: 8px;
+           width: 100%;
+           color: $text-muted;
+           font-size: 0.75rem;
+   
+           .progress-bar {
+             flex: 1;
+             height: 4px;
+             background-color: #4d4d4d;
+             border-radius: 2px;
+             position: relative;
+             cursor: pointer;
+   
+             .progress {
+               width: 30%; /* Progresso simulado */
+               height: 100%;
+               background-color: $text-main;
+               border-radius: 2px;
+   
+               &:hover {
+                 background-color: $spotify-green;
+               }
+             }
+           }
+         }
+       }
+   
+       /* Lado Direito: Volume e dispositivos */
+       .volume-controls {
+         display: flex;
+         align-items: center;
+         gap: 12px;
+         justify-content: flex-end;
+         width: 30%;
+         color: $text-muted;
+   
+         .volume-slider {
+           width: 100px;
+           height: 4px;
+           background-color: #4d4d4d;
+           border-radius: 2px;
+         }
+       }
+     }
+   }

@@ -1,0 +1,15 @@
+/* ui/src/index.css */
+
+:root {
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    color-scheme: dark; /* Força o navegador a entender que o app é Dark Mode */
+  }
+  
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000000 !important; /* Força o fundo preto absoluto ao redor de tudo */
+    color: #ffffff;
+  }

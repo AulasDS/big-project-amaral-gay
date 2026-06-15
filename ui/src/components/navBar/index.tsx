@@ -9,22 +9,34 @@ export default function NavBar() {
                     Spotify
                 </Link>
 
-                {/* Links de Navegação */}
                 <div className={styles.menu}>
                     <ul className={styles.navList}>
                         <li className={styles.navItem}>
-                            <Link className={styles.navLink} to="/">Home</Link>
-                        </li>
-                        <li className={styles.navItem}>
-                            <Link className={styles.navLink} to="/produtos/">Produtos</Link>
+                            <Link className={styles.navLink} to="/">Início</Link>
                         </li>
                         
-                        {/* 👇 NOVOS LINKS ADICIONADOS AQUI 👇 */}
+                        {/* Seção de Álbuns */}
                         <li className={styles.navItem}>
-                            <Link className={styles.navLink} to="/clientes">Clientes</Link>
+                            <Link className={styles.navLink} to="/albuns">Álbuns</Link>
                         </li>
                         <li className={styles.navItem}>
-                            <Link className={styles.navLink} to="/compras">Compras</Link>
+                            <Link className={styles.navLink} to="/inserir-album">Inserir Álbum</Link>
+                        </li>
+
+                        {/* Seção de Músicas */}
+                        <li className={styles.navItem}>
+                            <Link className={styles.navLink} to="/musicas">Músicas</Link>
+                        </li>
+                        <li className={styles.navItem}>
+                            <Link className={styles.navLink} to="/inserir-musica">Inserir Música</Link>
+                        </li>
+
+                        {/* 👇 ADICIONADO: Seção de Playlists 👇 */}
+                        <li className={styles.navItem}>
+                            <Link className={styles.navLink} to="/playlists">Playlists</Link>
+                        </li>
+                        <li className={styles.navItem}>
+                            <Link className={styles.navLink} to="/inserir-playlist">Criar Playlist</Link>
                         </li>
                     </ul>
                 </div>

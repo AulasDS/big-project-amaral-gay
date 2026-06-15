@@ -2,17 +2,17 @@ const Album = require('../models/Album');
 
 const albumController = {
 
+    // POST '/' - Cria um álbum real no MongoDB
     create: async (req, res) => {
         try {
             const { nome, artista, capaUrl, ano } = req.body;
 
-            // Validação simples
-            if (!nome || !artista) {
-                return res.status(400).json({ message: 'Nome e Artista são obrigatórios.' });
+            if (!nome || !artista || !ano) {
+                return res.status(400).json({ message: 'Nome, Artista e Ano são obrigatórios.' });
             }
 
-            // Exemplo com banco: const novoAlbum = await Album.create({ nome, artista, capaUrl, ano });
-            const novoAlbum = { id: Date.now(), nome, artista, capaUrl, ano }; // Provisório
+            // AGORA CONECTADO AO MONGOOSE:
+            const novoAlbum = await Album.create({ nome, artista, capaUrl, ano });
 
             return res.status(201).json({
                 message: 'Álbum criado com sucesso!',
@@ -23,11 +23,11 @@ const albumController = {
         }
     },
 
-    // GET '/'
+    // GET '/' - Busca todos os álbuns do banco
     getAll: async (req, res) => {
         try {
-            // Exemplo com banco: const albuns = await Album.find();
-            const albuns = []; // Provisório, simulando a lista do banco
+            // AGORA CONECTADO AO MONGOOSE:
+            const albuns = await Album.find(); 
 
             return res.status(200).json(albuns);
         } catch (error) {
@@ -35,13 +35,13 @@ const albumController = {
         }
     },
 
-    // GET '/:id'
+    // GET '/:id' - Busca um único álbum por ID
     getById: async (req, res) => {
         try {
             const { id } = req.params;
 
-            // Exemplo com banco: const album = await Album.findById(id);
-            const album = { id, nome: "Álbum Exemplo", artista: "Artista Exemplo" }; // Provisório
+            // AGORA CONECTADO AO MONGOOSE:
+            const album = await Album.findById(id);
 
             if (!album) {
                 return res.status(404).json({ message: 'Álbum não encontrado.' });
@@ -53,14 +53,23 @@ const albumController = {
         }
     },
 
-    // PUT '/:id'
+    // PUT '/:id' - Atualiza os dados de um álbum existente
     update: async (req, res) => {
         try {
             const { id } = req.params;
             const { nome, artista, capaUrl, ano } = req.body;
 
-            // Exemplo com banco: const albumAtualizado = await Album.findByIdAndUpdate(id, { nome, artista, capaUrl, ano }, { new: true });
-            const albumAtualizado = { id, nome, artista, capaUrl, ano }; // Provisório
+            // AGORA CONECTADO AO MONGOOSE:
+            // { new: true } serve para retornar o objeto já atualizado
+            const albumAtualizado = await Album.findByIdAndUpdate(
+                id, 
+                { nome, artista, capaUrl, ano }, 
+                { new: true }
+            );
+
+            if (!albumAtualizado) {
+                return res.status(404).json({ message: 'Álbum não encontrado para atualizar.' });
+            }
 
             return res.status(200).json({
                 message: 'Álbum atualizado com sucesso!',
@@ -71,14 +80,19 @@ const albumController = {
         }
     },
 
-    // DELETE '/:id'
+    // DELETE '/:id' - Deleta o álbum do banco de dados
     delete: async (req, res) => {
         try {
             const { id } = req.params;
 
-            // Exemplo com banco: await Album.findByIdAndDelete(id);
+            // AGORA CONECTADO AO MONGOOSE:
+            const albumDeletado = await Album.findByIdAndDelete(id);
 
-            return res.status(200).json({ message: `Álbum com ID ${id} deletado com sucesso!` });
+            if (!albumDeletado) {
+                return res.status(404).json({ message: 'Álbum não encontrado para deletar.' });
+            }
+
+            return res.status(200).json({ message: `Álbum deletado com sucesso!` });
         } catch (error) {
             return res.status(500).json({ message: 'Erro ao deletar álbum.', error: error.message });
         }
