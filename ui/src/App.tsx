@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Home from './pages/Home';
 import FormularioCadastro from './pages/FormularioCadastro';
 import GerenciarCadastro from './pages/GerenciarCadastro';
-import NavBar from './components/navBar';
+import NavBar from './components/Navbar';
 import GerenciarMusicas from './pages/GerenciarMusicas';
 import FormularioMusica from './pages/FormularioMusica';
 import GerenciarPlaylist from './pages/GerenciarPlaylist';

@@ -8,9 +8,9 @@ interface Album {
 }
 
 export default function FormularioMusica() {
+  const [defaultAlbum, setDefaultAlbum] = useState('');
   const [titulo, setTitulo] = useState('');
   const [artista, setArtista] = useState('');
-  const [duracao, setDuracao] = useState('');
   const [albumId, setAlbumId] = useState('');
   const [audioUrl, setAudioUrl] = useState(''); // 👈 Novo estado para o link do áudio
   const [albuns, setAlbuns] = useState<Album[]>([]);
@@ -19,22 +19,30 @@ export default function FormularioMusica() {
 
   // Busca os álbuns para preencher o campo de seleção (select)
   useEffect(() => {
-    axios.get('http://localhost:5000/album')
-      .then(res => setAlbuns(res.data))
-      .catch(err => console.error(err));
-  }, []);
+  axios.get('http://localhost:5000/album')
+    .then(res => {
+      setAlbuns(res.data);
+
+      const padrao = res.data.find(
+        (a: any) => a.nome === "Músicas Recomendadas"
+      );
+
+      if (padrao) {
+        setDefaultAlbum(padrao._id);
+      }
+    })
+    .catch(err => console.error(err));
+}, []);
 
   const handleSalvar = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Monta os dados traduzindo 'titulo' para 'nome' para casar com o Model do banco
-    const dadosDaMusica = {
-      nome: titulo, // 👈 Traduzindo título para nome
-      artista,
-      duracao,
-      albumId: albumId || undefined,
-      audioUrl      // 👈 Enviando o link da música
-    };
+  const dadosDaMusica = {
+    nome: titulo,
+    artista,
+    albumId: albumId === "" ? defaultAlbum : albumId, // 👈 TEM QUE SER O ID REAL
+    audioUrl
+  };
 
     axios.post('http://localhost:5000/musica', dadosDaMusica)
       .then(() => {
@@ -58,11 +66,6 @@ export default function FormularioMusica() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#b3b3b3' }}>Artista / Banda</label>
           <input type="text" value={artista} onChange={e => setArtista(e.target.value)} required style={{ background: '#333', border: 'none', padding: '12px', borderRadius: '4px', color: '#fff' }} placeholder="Ex: The Weeknd" />
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#b3b3b3' }}>Duração (MM:SS)</label>
-          <input type="text" value={duracao} onChange={e => setDuracao(e.target.value)} required style={{ background: '#333', border: 'none', padding: '12px', borderRadius: '4px', color: '#fff' }} placeholder="Ex: 3:50" />
         </div>
 
         {/* 🔊 NOVO CAMPO: URL do arquivo de áudio */}
