@@ -18,7 +18,11 @@ const AlbumSchema = new mongoose.Schema({
     ano: {
         type: Number,
         required: true
-    }
+    },
+    musicas: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Musica' // Referência ao modelo de Música
+    }]
 }, {
     timestamps: true // Cria automaticamente os campos createdAt e updatedAt
 });

@@ -1,5 +1,3 @@
-FormularioMusica
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -14,6 +12,7 @@ export default function FormularioMusica() {
   const [artista, setArtista] = useState('');
   const [duracao, setDuracao] = useState('');
   const [albumId, setAlbumId] = useState('');
+  const [audioUrl, setAudioUrl] = useState(''); // 👈 Novo estado para o link do áudio
   const [albuns, setAlbuns] = useState<Album[]>([]);
   
   const navigate = useNavigate();
@@ -28,11 +27,13 @@ export default function FormularioMusica() {
   const handleSalvar = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Monta os dados traduzindo 'titulo' para 'nome' para casar com o Model do banco
     const dadosDaMusica = {
-      titulo,
+      nome: titulo, // 👈 Traduzindo título para nome
       artista,
       duracao,
-      albumId: albumId || undefined
+      albumId: albumId || undefined,
+      audioUrl      // 👈 Enviando o link da música
     };
 
     axios.post('http://localhost:5000/musica', dadosDaMusica)
@@ -44,8 +45,8 @@ export default function FormularioMusica() {
   };
 
   return (
-    <div style={{ maxWidth: '500px', margin: '0 auto', padding: '20px', backgroundColor: '#1a1a1a', borderRadius: '8px' }}>
-      <h2 style={{ marginBottom: '24px', fontSize: '1.5rem' }}>Adicionar Música</h2>
+    <div style={{ maxWidth: '500px', margin: '0 auto', padding: '20px', backgroundColor: '#1a1a1a', borderRadius: '8px', fontFamily: 'sans-serif' }}>
+      <h2 style={{ marginBottom: '24px', fontSize: '1.5rem', color: '#fff' }}>Adicionar Música</h2>
       
       <form onSubmit={handleSalvar} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         
@@ -62,6 +63,12 @@ export default function FormularioMusica() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#b3b3b3' }}>Duração (MM:SS)</label>
           <input type="text" value={duracao} onChange={e => setDuracao(e.target.value)} required style={{ background: '#333', border: 'none', padding: '12px', borderRadius: '4px', color: '#fff' }} placeholder="Ex: 3:50" />
+        </div>
+
+        {/* 🔊 NOVO CAMPO: URL do arquivo de áudio */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#b3b3b3' }}>URL do Arquivo de Áudio (.mp3)</label>
+          <input type="text" value={audioUrl} onChange={e => setAudioUrl(e.target.value)} required style={{ background: '#333', border: 'none', padding: '12px', borderRadius: '4px', color: '#fff' }} placeholder="https://www.site.com/musica.mp3" />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>

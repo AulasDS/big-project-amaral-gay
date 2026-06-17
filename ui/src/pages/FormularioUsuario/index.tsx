@@ -18,12 +18,16 @@ export default function FormularioUsuario() {
       tipo
     };
 
+    // 💡 CORRIGIDO: Enviando o objeto completo com nome, email e tipo!
     axios.post('http://localhost:5000/usuario', dadosDoUsuario)
       .then(() => {
-        alert("Usuário criado com sucesso!");
-        navigate('/usuarios');
+        alert("Usuário cadastrado com sucesso!");
+        navigate('/usuarios'); // Te joga para a lista de gerenciar perfis
       })
-      .catch(err => alert("Erro ao criar: " + (err.response?.data?.message || err.message)));
+      .catch(err => {
+        console.error(err);
+        alert("Erro ao criar usuário: " + (err.response?.data?.message || err.message));
+      });
   };
 
   return (

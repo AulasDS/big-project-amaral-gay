@@ -1,86 +1,85 @@
-const Produto = require('../models/Produto');
+const Playlist = require('../models/Playlist');
 
-class ProdutoController {
-    static async create(req, res) {
+module.exports = {
+    // POST '/' - Cria uma playlist vazia ou já com músicas
+    create: async (req, res) => {
         try {
-            const { nome, preco, quantidade, descricao } = req.body;
+            const { nome, descricao, musicas } = req.body;
             
-            if (!nome || !preco || quantidade === undefined || !descricao) {
-                return res.status(400).json({ message: "Dados inválidos. Certifique-se de enviar nome, preco, quantidade e descricao." });
-            }
-
-            const produtoData = {
+            const novaPlaylist = new Playlist({
                 nome,
-                preco,
-                quantidade,
-                descricao
-            };
+                descricao,
+                musicas // Pode mandar um array de IDs de músicas aqui ex: ["id1", "id2"]
+            });
 
-            const newProduto = await Produto.create(produtoData);
-            return res.status(201).json({ message: 'Produto criado com sucesso', data: newProduto });
-
+            await novaPlaylist.save();
+            return res.status(201).json(novaPlaylist);
         } catch (error) {
-            return res.status(500).json({ message: 'Erro ao criar produto', error: error.message });
+            return res.status(500).json({ error: 'Erro ao criar a playlist', details: error.message });
         }
-    }
+    },
 
-    static async getAll(req, res) {
+    // GET '/' - Lista todas as playlists (trazendo os dados das músicas juntas)
+    getAll: async (req, res) => {
         try {
-            const products = await Produto.find();
-            return res.status(200).json({ data: products });
+            const playlists = await Playlist.find().populate('musicas');
+            return res.status(200).json(playlists);
         } catch (error) {
-            return res.status(500).json({ message: 'Erro ao encontrar produtos', error: error.message });
+            return res.status(500).json({ error: 'Erro ao buscar as playlists', details: error.message });
         }
-    }
+    },
 
-    static async getById(req, res) {
-        try {
-            const { id } = req.params;
-            const product = await Produto.findById(id);
-            if (!product) {
-                return res.status(404).json({ message: 'Produto não encontrado' });
-            }
-            return res.status(200).json({ data: product });
-        } catch (error) {
-            return res.status(500).json({ message: 'Erro ao encontrar produto', error: error.message });
-        }
-    }
-
-    static async update(req, res) {
+    // GET '/:id' - Busca uma playlist específica com todas as suas músicas
+    getById: async (req, res) => {
         try {
             const { id } = req.params;
-            const { nome, preco, quantidade, descricao } = req.body;
-            
-            const updatedData = {
-                nome,
-                preco,
-                quantidade,
-                descricao
-            };
-            
-            const updatedProduct = await Produto.findByIdAndUpdate(id, updatedData, { new: true });
-            
-            if (!updatedProduct) {
-                return res.status(404).json({ message: 'Produto não encontrado' });
-            }
-            return res.status(200).json({ message: 'Produto atualizado com sucesso', data: updatedProduct });
-        } catch (error) {
-            return res.status(500).json({ message: 'Erro ao atualizar produto', error: error.message });
-        }
-    }
+            const playlist = await Playlist.findById(id).populate('musicas');
 
-    static async delete(req, res) {
+            if (!playlist) {
+                return res.status(404).json({ error: 'Playlist não encontrada' });
+            }
+
+            return res.status(200).json(playlist);
+        } catch (error) {
+            return res.status(400).json({ error: 'ID inválido ou erro na busca', details: error.message });
+        }
+    },
+
+    // PUT '/:id' - Atualiza o nome, descrição ou a lista de músicas
+    update: async (req, res) => {
         try {
             const { id } = req.params;
-            const deletedProduct = await Produto.findByIdAndDelete(id);
-            if (!deletedProduct) {
-                return res.status(404).json({ message: 'Produto não encontrado' });
+            const { nome, descricao, musicas } = req.body;
+
+            const playlistAtualizada = await Playlist.findByIdAndUpdate(
+                id, 
+                { nome, descricao, musicas }, 
+                { new: true } // Retorna a playlist já atualizada no JSON
+            ).populate('musicas');
+
+            if (!playlistAtualizada) {
+                return res.status(404).json({ error: 'Playlist não encontrada para atualização' });
             }
-            return res.status(200).json({ message: 'Produto deletado com sucesso' });
+
+            return res.status(200).json(playlistAtualizada);
         } catch (error) {
-            return res.status(500).json({ message: 'Erro ao deletar produto', error: error.message });
+            return res.status(400).json({ error: 'Erro ao atualizar a playlist', details: error.message });
+        }
+    },
+
+    // DELETE '/:id' - Deleta a playlist
+    delete: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const playlistDeletada = await Playlist.findByIdAndDelete(id);
+
+            if (!playlistDeletada) {
+                return res.status(404).json({ error: 'Playlist não encontrada para exclusão' });
+            }
+
+            return res.status(200).json({ message: 'Playlist deletada com sucesso!' });
+        } catch (error) {
+            return res.status(400).json({ error: 'Erro ao deletar a playlist', details: error.message });
         }
     }
-}
-
-module.exports = ProdutoController;
+};

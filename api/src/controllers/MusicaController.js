@@ -1,92 +1,100 @@
-const Compra = require('../models/Compra');
+const Musica = require('../models/Musica'); 
+const Album = require('../models/Album'); // 👈 PASSO 1: Importe o model do Album aqui no topo
 
-class CompraController {
-    static async create(req, res) {
+module.exports = {
+    // POST '/' - Cria uma nova música e vincula ao Álbum
+    create: async (req, res) => {
         try {
-            const { clienteId, produtoId, quantidade } = req.body;
+            // 👈 PASSO 2: Recebemos o campo 'album' e 'audioUrl' vindos do formulário do Front-End
+            const { nome, artista, minutagem, descricao, feat, album, audioUrl } = req.body;
             
-            if (!clienteId || !produtoId || !quantidade) {
-                return res.status(400).json({ message: "Dados inválidos. Envie clienteId, produtoId e quantidade." });
+            const novaMusica = new Musica({
+                nome,
+                artista,
+                minutagem,
+                descricao,
+                feat,
+                audioUrl, // Garante que a URL do arquivo de áudio salve no banco
+                album     // Salva a referência do ID do álbum na própria música
+            });
+
+            await novaMusica.save();
+
+            // 👈 PASSO 3: Se o usuário selecionou um álbum no formulário, atualizamos o documento dele!
+            if (album) {
+                await Album.findByIdAndUpdate(album, {
+                    $push: { musicas: novaMusica._id } // Dá um push com o ID da nova música no array do álbum
+                });
             }
 
-            const compraData = {
-                clienteId,
-                produtoId,
-                quantidade
-            };
-
-            const newCompra = await Compra.create(compraData);
-            return res.status(201).json({ message: 'Compra registrada com sucesso', data: newCompra });
-
+            return res.status(201).json(novaMusica);
         } catch (error) {
-            return res.status(500).json({ message: 'Erro ao registrar compra', error: error.message });
+            return res.status(500).json({ error: 'Erro ao criar a música', details: error.message });
         }
-    }
+    },
 
-    static async getAll(req, res) {
+    // GET '/' - Lista todas as músicas
+    getAll: async (req, res) => {
         try {
-            const compras = await Compra.find()
-                .populate('clienteId')
-                .populate('produtoId');
-                
-            return res.status(200).json({ data: compras });
+            const musicas = await Musica.find();
+            return res.status(200).json(musicas);
         } catch (error) {
-            return res.status(500).json({ message: 'Erro ao listar compras', error: error.message });
+            return res.status(500).json({ error: 'Erro ao buscar as músicas', details: error.message });
         }
-    }
+    },
 
-    static async getById(req, res) {
+    // GET '/:id' - Busca uma música específica pelo ID
+    getById: async (req, res) => {
         try {
             const { id } = req.params;
-            const compra = await Compra.findById(id)
-                .populate('clienteId')
-                .populate('produtoId');
+            const musica = await Musica.findById(id);
 
-            if (!compra) {
-                return res.status(404).json({ message: 'Compra não encontrada' });
+            if (!musica) {
+                return res.status(404).json({ error: 'Música não encontrada' });
             }
-            return res.status(200).json({ data: compra });
-        } catch (error) {
-            return res.status(500).json({ message: 'Erro ao buscar compra', error: error.message });
-        }
-    }
 
-    static async update(req, res) {
+            return res.status(200).json(musica);
+        } catch (error) {
+            return res.status(400).json({ error: 'ID inválido ou erro na busca', details: error.message });
+        }
+    },
+
+    // PUT '/:id' - Atualiza os dados de uma música
+    update: async (req, res) => {
         try {
             const { id } = req.params;
-            const { clienteId, produtoId, quantidade, data } = req.body;
-            
-            const updatedData = {
-                clienteId,
-                produtoId,
-                quantidade,
-                data
-            };
+            const { nome, artista, minutagem, descricao, feat, audioUrl, album } = req.body;
 
-            const updatedCompra = await Compra.findByIdAndUpdate(id, updatedData, { new: true });
-            
-            if (!updatedCompra) {
-                return res.status(404).json({ message: 'Compra não encontrada' });
+            // O { new: true } faz o Mongoose retornar a música já atualizada
+            const musicaAtualizada = await Musica.findByIdAndUpdate(
+                id, 
+                { nome, artista, minutagem, descricao, feat, audioUrl, album }, 
+                { new: true }
+            );
+
+            if (!musicaAtualizada) {
+                return res.status(404).json({ error: 'Música não encontrada para atualização' });
             }
-            return res.status(200).json({ message: 'Compra atualizada com sucesso', data: updatedCompra });
-        } catch (error) {
-            return res.status(500).json({ message: 'Erro ao atualizar compra', error: error.message });
-        }
-    }
 
-    static async delete(req, res) {
+            return res.status(200).json(musicaAtualizada);
+        } catch (error) {
+            return res.status(400).json({ error: 'Erro ao atualizar a música', details: error.message });
+        }
+    },
+
+    // DELETE '/:id' - Deleta uma música do banco
+    delete: async (req, res) => {
         try {
             const { id } = req.params;
-            const deletedCompra = await Compra.findByIdAndDelete(id);
-            
-            if (!deletedCompra) {
-                return res.status(404).json({ message: 'Compra não encontrada' });
+            const musicaDeletada = await Musica.findByIdAndDelete(id);
+
+            if (!musicaDeletada) {
+                return res.status(404).json({ error: 'Música não encontrada para exclusão' });
             }
-            return res.status(200).json({ message: 'Compra deletada com sucesso' });
+
+            return res.status(200).json({ message: 'Música deletada com sucesso!' });
         } catch (error) {
-            return res.status(500).json({ message: 'Erro ao deletar compra', error: error.message });
+            return res.status(400).json({ error: 'Erro ao deletar a música', details: error.message });
         }
     }
-}
-
-module.exports = CompraController;
+};
