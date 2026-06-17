@@ -57,32 +57,6 @@ export default function Home({ setMusicaAtual }: HomeProps) {
           <h1 style={{ fontSize: '2rem', fontWeight: '800', margin: 0, letterSpacing: '-0.04em' }}>
             {obterSaudacao()}
           </h1>
-
-          {/* ⚡ ATALHO DE TESTE: Envia um som direto para o rodapé do App.tsx */}
-          <button 
-            onClick={() => setMusicaAtual({
-              nome: "Freek'n You (Fast Mix)",
-              artista: "Jodeci & SoundHelix",
-              audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-              capaUrl: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&q=80"
-            })}
-            style={{ 
-              backgroundColor: '#1ed760', 
-              color: '#000', 
-              border: 'none', 
-              padding: '8px 20px', 
-              borderRadius: '500px', 
-              fontSize: '0.85rem', 
-              fontWeight: 'bold', 
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(30, 215, 96, 0.3)',
-              transition: 'transform 0.2s ease'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.04)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            ▶ Testar Player na Home
-          </button>
         </div>
 
         {/* 🏷️ Filtros de Gênero */}
