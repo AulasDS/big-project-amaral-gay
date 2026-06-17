@@ -1,100 +1,83 @@
 const Album = require('../models/Album');
 
 const albumController = {
-
-    // POST '/' - Cria um álbum real no MongoDB
+    // 1. Cadastrar Álbum no Banco
     create: async (req, res) => {
         try {
-            const { nome, artista, capaUrl, ano } = req.body;
+            const { nome, artista, capaUrl, ano, genero } = req.body;
+            
+            // Log para ver se os dados estão chegando do React
+            console.log("Dados recebidos no backend:", req.body);
 
-            if (!nome || !artista || !ano) {
-                return res.status(400).json({ message: 'Nome, Artista e Ano são obrigatórios.' });
-            }
-
-            // AGORA CONECTADO AO MONGOOSE:
-            const novoAlbum = await Album.create({ nome, artista, capaUrl, ano });
-
-            return res.status(201).json({
-                message: 'Álbum criado com sucesso!',
-                data: novoAlbum
+            const novoAlbum = await Album.create({ 
+                nome, 
+                artista, 
+                capaUrl, 
+                ano, 
+                genero: genero || 'Geral' 
             });
-        } catch (error) {
-            return res.status(500).json({ message: 'Erro ao criar álbum.', error: error.message });
-        }
-    },
 
-    // GET '/' - Busca todos os álbuns do banco
+            return res.status(201).json({ message: 'Álbum criado!', data: novoAlbum });
+        } catch (error) {
+            // Essa linha vai forçar o terminal a mostrar o erro real se o banco de dados falhar
+            console.error("💥 ERRO CRÍTICO NO BANCO DE DADOS:", error);
+            
+            return res.status(500).json({ message: 'Erro interno', error: error.message });
+        }
+    }, // 👈 AQUI! Adicionei a vírgula que faltava para separar as funções do objeto
+
+    // 2. GET '/' ou '/album?genero=Rock' (Regra 1)
     getAll: async (req, res) => {
         try {
-            // AGORA CONECTADO AO MONGOOSE:
-            const albuns = await Album.find(); 
+            const { genero } = req.query;
+            let filtro = {};
+            
+            if (genero) {
+                // Filtro case-insensitive para o gênero musical
+                filtro.genero = { $regex: new RegExp("^" + genero + "$", "i") };
+            }
 
+            const albuns = await Album.find(filtro);
             return res.status(200).json(albuns);
         } catch (error) {
             return res.status(500).json({ message: 'Erro ao buscar álbuns.', error: error.message });
         }
     },
 
-    // GET '/:id' - Busca um único álbum por ID
+    // 3. Buscar Álbum por ID (Regra 2)
     getById: async (req, res) => {
         try {
             const { id } = req.params;
-
-            // AGORA CONECTADO AO MONGOOSE:
-            const album = await Album.findById(id);
-
+            const album = await Album.findById(id).populate('musicas');;
             if (!album) {
                 return res.status(404).json({ message: 'Álbum não encontrado.' });
             }
-
             return res.status(200).json(album);
         } catch (error) {
             return res.status(500).json({ message: 'Erro ao buscar o álbum.', error: error.message });
         }
     },
 
-    // PUT '/:id' - Atualiza os dados de um álbum existente
+    // 4. Atualizar Álbum
     update: async (req, res) => {
         try {
             const { id } = req.params;
-            const { nome, artista, capaUrl, ano } = req.body;
-
-            // AGORA CONECTADO AO MONGOOSE:
-            // { new: true } serve para retornar o objeto já atualizado
-            const albumAtualizado = await Album.findByIdAndUpdate(
-                id, 
-                { nome, artista, capaUrl, ano }, 
-                { new: true }
-            );
-
-            if (!albumAtualizado) {
-                return res.status(404).json({ message: 'Álbum não encontrado para atualizar.' });
-            }
-
-            return res.status(200).json({
-                message: 'Álbum atualizado com sucesso!',
-                data: albumAtualizado
-            });
+            const { nome, artista, capaUrl, ano, genero } = req.body;
+            const albumAtualizado = await Album.findByIdAndUpdate(id, { nome, artista, capaUrl, ano, genero }, { new: true });
+            return res.status(200).json({ message: 'Álbum atualizado!', data: albumAtualizado });
         } catch (error) {
-            return res.status(500).json({ message: 'Erro ao atualizar álbum.', error: error.message });
+            return res.status(500).json({ message: 'Erro ao atualizar.', error: error.message });
         }
     },
 
-    // DELETE '/:id' - Deleta o álbum do banco de dados
+    // 5. Deletar Álbum
     delete: async (req, res) => {
         try {
             const { id } = req.params;
-
-            // AGORA CONECTADO AO MONGOOSE:
-            const albumDeletado = await Album.findByIdAndDelete(id);
-
-            if (!albumDeletado) {
-                return res.status(404).json({ message: 'Álbum não encontrado para deletar.' });
-            }
-
-            return res.status(200).json({ message: `Álbum deletado com sucesso!` });
+            await Album.findByIdAndDelete(id);
+            return res.status(200).json({ message: 'Deletado com sucesso!' });
         } catch (error) {
-            return res.status(500).json({ message: 'Erro ao deletar álbum.', error: error.message });
+            return res.status(500).json({ message: 'Erro ao deletar.', error: error.message });
         }
     }
 };

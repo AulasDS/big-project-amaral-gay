@@ -1,21 +1,26 @@
 const mongoose = require('mongoose');
 
-const Compra = mongoose.model('Compra', {
-    clienteId: {
-        type:mongoose.Schema.Types.ObjectId,
-        ref: 'Cliente'
+const PlaylistSchema = new mongoose.Schema({
+    nome: {
+        type: String,
+        required: true, // Nome é obrigatório
+        trim: true
     },
-    produtoId: {
+    descricao: {
+        type: String,
+        trim: true
+    },
+    // Cria um vínculo (Array) com o seu modelo de Música usando o ID delas
+    musicas: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Produto'
-    },
-    quantidade: Number,
-
-    data: {
+        ref: 'Musica' // Deve ser o exato mesmo nome do model de música
+    }],
+    criadaEm: {
         type: Date,
-        default: Date.now()
-
+        default: Date.now
     }
-})
+});
 
-module.exports = Compra;
+// Exporta o modelo com o nome correto
+const Playlist = mongoose.model('Playlist', PlaylistSchema);
+module.exports = Playlist;
