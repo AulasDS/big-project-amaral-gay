@@ -14,6 +14,7 @@ import FormularioUsuario from './pages/FormularioUsuario';
 import DetalheAlbum from './pages/DetalheAlbum';
 import Biblioteca from './pages/Biblioteca';
 import SelectPerfil from './pages/SelectPerfil';
+import TelaAbertura from './pages/TelaAbertura'; // 👈 Sua nova página de Boas-Vindas importada!
 
 function App() {
   const [userLogado, setUserLogado] = useState<any>(null);
@@ -27,11 +28,42 @@ function App() {
     audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
   });
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0); // 👈 Tempo atual da música em segundos
-  const [duration, setDuration] = useState(0);       // 👈 Duração total da música em segundos
+  const [currentTime, setCurrentTime] = useState(0); 
+  const [duration, setDuration] = useState(0);       
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Função para dar Play/Pause manual
+  // =========================================================
+  // 🟢 OS SEUS USEEFFECTS FICAM JUNTOS AQUI (ANTES DOS MÉTODOS)
+  // =========================================================
+  
+  // 1. useEffect de Inicialização: Verifica se o usuário já tem perfil salvo ao abrir o app
+  useEffect(() => {
+    const idSalvo = localStorage.getItem('userId');
+    const nomeSalvo = localStorage.getItem('userName');
+    if (idSalvo && nomeSalvo) {
+      setUserLogado({ _id: idSalvo, nome: nomeSalvo });
+    }
+  }, []);
+
+  // 2. useEffect do Player: Dispara sempre que a música muda
+  useEffect(() => {
+    if (musicaAtual.audioUrl && audioRef.current) {
+      audioRef.current.load();
+      setCurrentTime(0);
+      
+      audioRef.current.play()
+        .then(() => setIsPlaying(true))
+        .catch(() => {
+          setIsPlaying(false);
+          console.log("Autoplay inicial aguardando interação do usuário.");
+        });
+    }
+  }, [musicaAtual]);
+
+  // =========================================================
+  // 🛠️ MÉTODOS E FUNÇÕES AUXILIARES
+  // =========================================================
+  
   const togglePlay = () => {
     if (!musicaAtual.audioUrl) return;
     
@@ -45,38 +77,12 @@ function App() {
     }
   };
 
-  // Efeito disparado SEMPRE que você clica em uma música nova na lista
-  useEffect(() => {
-    if (musicaAtual.audioUrl && audioRef.current) {
-      audioRef.current.load();
-      setCurrentTime(0);
-      
-      // Toca a música automaticamente se o arquivo de áudio mudou
-      audioRef.current.play()
-        .then(() => setIsPlaying(true))
-        .catch(() => {
-          // Se o navegador bloquear o autoplay na primeira música, mantemos pausado esperando o clique
-          setIsPlaying(false);
-          console.log("Autoplay inicial aguardando interação do usuário.");
-        });
-    }
-  }, [musicaAtual]);
-
-  useEffect(() => {
-    const idSalvo = localStorage.getItem('userId');
-    const nomeSalvo = localStorage.getItem('userName');
-    if (idSalvo && nomeSalvo) {
-      setUserLogado({ _id: idSalvo, nome: nomeSalvo });
-    }
-  }, []);
-
   const deslogar = () => {
     localStorage.clear();
     setUserLogado(null);
     navigate('/select-perfil');
   };
 
-  // Auxiliar para transformar segundos brutos em formato bonito MM:SS (ex: 90s -> 1:30)
   const formatarTempo = (segundos: number) => {
     if (isNaN(segundos)) return "0:00";
     const mins = Math.floor(segundos / 60);
@@ -84,6 +90,9 @@ function App() {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
+  // =========================================================
+  // 🎨 RETORNO VISUAL DO APLICATIVO
+  // =========================================================
   return (
     <div className="spotify-layout" style={{ 
       backgroundColor: '#000000', 
@@ -91,6 +100,11 @@ function App() {
       color: '#ffffff',
       fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
     }}>
+      
+      {/* 🔒 BLOQUEIO DA TELA: Se o usuário não estiver logado, a TelaAbertura renderiza fixa por cima de tudo */}
+      {!userLogado && (
+        <TelaAbertura onLoginSucesso={(usuario) => setUserLogado(usuario)} />
+      )}
       
       {/* 💾 Tag HTML5 de Áudio Conectada aos Eventos de Tempo Reais */}
       <audio 
@@ -188,7 +202,6 @@ function App() {
         overflowY: 'auto'
       }}>
         <Routes>
-          {/* 👇 Distribuindo a função de tocar música para as páginas que listam faixas */}
           <Route path='/' element={<Home setMusicaAtual={setMusicaAtual} />} />
           <Route path='/select-perfil' element={<SelectPerfil onSelect={(u: any) => setUserLogado(u)} />} />
           <Route path='/album/:id' element={<DetalheAlbum setMusicaAtual={setMusicaAtual} />} />
@@ -261,7 +274,7 @@ function App() {
             <span style={{ cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.color = '#fff'} onMouseLeave={(e) => e.currentTarget.style.color = '#b3b3b3'}>⏭</span>
           </div>
           
-          {/* 👇 PROGRESSO TOTALMENTE DINÂMICO E CALCADO NO ARQUIVO MP3 👇 */}
+          {/* PROGRESSO TOTALMENTE DINÂMICO E CALCADO NO ARQUIVO MP3 */}
           <div className="playback-bar" style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', fontSize: '0.75rem', color: '#b3b3b3' }}>
             <span>{formatarTempo(currentTime)}</span>
             <div className="progress-bar" style={{ flex: 1, height: '4px', background: '#4f4f4f', borderRadius: '2px', cursor: 'pointer', position: 'relative' }}>
