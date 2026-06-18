@@ -1,11 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-interface GerenciarMusicasProps {
-  setMusicaAtual: (musica: any) => void;
-}
-
-export default function GerenciarMusicas({ setMusicaAtual }: GerenciarMusicasProps) {
+export default function GerenciarMusicas() {
   const [musicas, setMusicas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -20,17 +16,6 @@ export default function GerenciarMusicas({ setMusicaAtual }: GerenciarMusicasPro
         setLoading(false);
       });
   }, []);
-
-  const handleTocarMusica = (musica: any) => {
-    // Mescla os dados do banco para o formato aceito pelo Player do seu App.tsx
-    setMusicaAtual({
-      nome: musica.nome,
-      artista: musica.artista,
-      audioUrl: musica.audioUrl,
-      // Se tiver capaUrl usa, senão coloca uma imagem padrão escura estilizada
-      capaUrl: musica.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&q=80"
-    });
-  };
 
   return (
     <div style={{ color: '#fff', fontFamily: 'sans-serif' }}>
@@ -53,13 +38,11 @@ export default function GerenciarMusicas({ setMusicaAtual }: GerenciarMusicasPro
           {musicas.map((musica, index) => (
             <div
               key={musica._id}
-              onClick={() => handleTocarMusica(musica)} // 🔥 Ativa o player de áudio do App.tsx!
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 padding: '12px 16px',
                 borderRadius: '4px',
-                cursor: 'pointer',
                 transition: 'background 0.2s'
               }}
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2a2a2a'}
@@ -72,8 +55,7 @@ export default function GerenciarMusicas({ setMusicaAtual }: GerenciarMusicasPro
                 <p style={{ margin: 0, fontSize: '0.85rem', color: '#b3b3b3' }}>{musica.artista}</p>
               </div>
 
-              <span style={{ color: '#b3b3b3', fontSize: '0.9rem', marginRight: '20px' }}>{musica.duracao}</span>
-              <div style={{ color: '#1ed760', fontSize: '1.2rem' }}>▶</div>
+              <span style={{ color: '#b3b3b3', fontSize: '0.9rem', marginRight: '20px' }}>{musica.duracao || musica.minutagem}</span>
             </div>
           ))}
         </div>

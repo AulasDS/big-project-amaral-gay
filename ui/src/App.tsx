@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Home from './pages/Home';
 import FormularioCadastro from './pages/FormularioCadastro';
 import GerenciarCadastro from './pages/GerenciarCadastro';
-import NavBar from './components/Navbar';
+import NavBar from './components/Navbar'; 
 import GerenciarMusicas from './pages/GerenciarMusicas';
 import FormularioMusica from './pages/FormularioMusica';
 import GerenciarPlaylist from './pages/GerenciarPlaylist';
@@ -14,26 +14,45 @@ import FormularioUsuario from './pages/FormularioUsuario';
 import DetalheAlbum from './pages/DetalheAlbum';
 import Biblioteca from './pages/Biblioteca';
 import SelectPerfil from './pages/SelectPerfil';
+import TelaAbertura from './pages/TelaAbertura';
+import DetalheMusica from './pages/DetalheMusica'; 
 
 function App() {
   const [userLogado, setUserLogado] = useState<any>(null);
+  const [carregandoToken, setCarregandoToken] = useState(true); // 🟢 Controla a checagem inicial do localStorage
   const navigate = useNavigate();
 
-  // 🎵 ESTADOS E REFERÊNCIAS DO PLAYER DE ÁUDIO 🎵
-  const [musicaAtual, setMusicaAtual] = useState<any>({
-    nome: "Freek'n You",
-    artista: "Jodeci",
-    capaUrl: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&q=80",
-    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
-  });
+  const [musicaAtual, setMusicaAtual] = useState<any>(null); 
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0); // 👈 Tempo atual da música em segundos
-  const [duration, setDuration] = useState(0);       // 👈 Duração total da música em segundos
+  const [currentTime, setCurrentTime] = useState(0); 
+  const [duration, setDuration] = useState(0);       
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Função para dar Play/Pause manual
+  useEffect(() => {
+    const idSalvo = localStorage.getItem('userId');
+    const nomeSalvo = localStorage.getItem('userName');
+    if (idSalvo && nomeSalvo) {
+      setUserLogado({ _id: idSalvo, nome: nomeSalvo });
+    }
+    setCarregandoToken(false); // 🟢 Terminou de checar se existe perfil salvo
+  }, []);
+
+  useEffect(() => {
+    if (musicaAtual?.audioUrl && audioRef.current) {
+      audioRef.current.load();
+      setCurrentTime(0);
+      
+      audioRef.current.play()
+        .then(() => setIsPlaying(true))
+        .catch(() => {
+          setIsPlaying(false);
+          console.log("Autoplay inicial aguardando interação do usuário.");
+        });
+    }
+  }, [musicaAtual]);
+
   const togglePlay = () => {
-    if (!musicaAtual.audioUrl) return;
+    if (!musicaAtual?.audioUrl) return;
     
     if (isPlaying) {
       audioRef.current?.pause();
@@ -45,44 +64,28 @@ function App() {
     }
   };
 
-  // Efeito disparado SEMPRE que você clica em uma música nova na lista
-  useEffect(() => {
-    if (musicaAtual.audioUrl && audioRef.current) {
-      audioRef.current.load();
-      setCurrentTime(0);
-      
-      // Toca a música automaticamente se o arquivo de áudio mudou
-      audioRef.current.play()
-        .then(() => setIsPlaying(true))
-        .catch(() => {
-          // Se o navegador bloquear o autoplay na primeira música, mantemos pausado esperando o clique
-          setIsPlaying(false);
-          console.log("Autoplay inicial aguardando interação do usuário.");
-        });
-    }
-  }, [musicaAtual]);
-
-  useEffect(() => {
-    const idSalvo = localStorage.getItem('userId');
-    const nomeSalvo = localStorage.getItem('userName');
-    if (idSalvo && nomeSalvo) {
-      setUserLogado({ _id: idSalvo, nome: nomeSalvo });
-    }
-  }, []);
-
   const deslogar = () => {
     localStorage.clear();
     setUserLogado(null);
     navigate('/select-perfil');
   };
 
-  // Auxiliar para transformar segundos brutos em formato bonito MM:SS (ex: 90s -> 1:30)
   const formatarTempo = (segundos: number) => {
     if (isNaN(segundos)) return "0:00";
     const mins = Math.floor(segundos / 60);
     const secs = Math.floor(segundos % 60);
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
+
+  // 🟢 Evita renderizar qualquer rota antes de ler o localStorage
+  if (carregandoToken) {
+    return <div style={{ backgroundColor: '#000000', minHeight: '100vh' }} />;
+  }
+
+  // 🟢 Se não houver usuário logado após a checagem, exibe APENAS a tela de abertura de forma limpa
+  if (!userLogado) {
+    return <TelaAbertura onLoginSucesso={(usuario) => setUserLogado(usuario)} />;
+  }
 
   return (
     <div className="spotify-layout" style={{ 
@@ -92,10 +95,9 @@ function App() {
       fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
     }}>
       
-      {/* 💾 Tag HTML5 de Áudio Conectada aos Eventos de Tempo Reais */}
       <audio 
         ref={audioRef} 
-        src={musicaAtual.audioUrl} 
+        src={musicaAtual?.audioUrl || ""} 
         onTimeUpdate={() => {
           if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
         }}
@@ -108,7 +110,6 @@ function App() {
         }} 
       />
       
-      {/* 🧭 SIDEBAR ESQUERDA (Navegação + Perfil) */}
       <aside className="sidebar-left" style={{
         backgroundColor: '#000000',
         padding: '16px',
@@ -119,7 +120,6 @@ function App() {
       }}>
         <NavBar />
         
-        {/* Painel do Usuário Ativo Premium */}
         <div style={{ 
           marginTop: 'auto', 
           padding: '16px', 
@@ -129,83 +129,58 @@ function App() {
           boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
           border: '1px solid #282828'
         }}>
-          {userLogado ? (
-            <>
-              <p style={{ fontSize: '0.75rem', color: '#b3b3b3', margin: '0 0 4px 0', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ouvindo como</p>
-              <h4 style={{ color: '#1ed760', margin: '0 0 16px 0', fontSize: '1.1rem', fontWeight: 700 }}>{userLogado.nome}</h4>
-              <button 
-                onClick={deslogar} 
-                style={{ 
-                  background: 'transparent', 
-                  border: '1px solid #e91429', 
-                  color: '#e91429', 
-                  padding: '6px 16px', 
-                  borderRadius: '500px', 
-                  cursor: 'pointer', 
-                  fontSize: '0.8rem',
-                  fontWeight: 'bold',
-                  transition: 'transform 0.2s ease, background-color 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(233, 20, 41, 0.1)';
-                  e.currentTarget.style.transform = 'scale(1.04)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.transform = 'scale(1)';
-                }}
-              >
-                Trocar Perfil
-              </button>
-            </>
-          ) : (
-            <button 
-              onClick={() => navigate('/select-perfil')} 
-              style={{ 
-                background: '#1ed760', 
-                color: '#000', 
-                border: 'none', 
-                padding: '10px 20px', 
-                borderRadius: '500px', 
-                fontWeight: 'bold', 
-                cursor: 'pointer',
-                fontSize: '0.85rem',
-                transition: 'transform 0.2s ease'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.04)'}
-              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-            >
-              Selecionar Perfil
-            </button>
-          )}
+          <p style={{ fontSize: '0.75rem', color: '#b3b3b3', margin: '0 0 4px 0', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ouvindo como</p>
+          <h4 style={{ color: '#1ed760', margin: '0 0 16px 0', fontSize: '1.1rem', fontWeight: 700 }}>{userLogado.nome}</h4>
+          <button 
+            onClick={deslogar} 
+            style={{ 
+              background: 'transparent', 
+              border: '1px solid #e91429', 
+              color: '#e91429', 
+              padding: '6px 16px', 
+              borderRadius: '500px', 
+              cursor: 'pointer', 
+              fontSize: '0.8rem',
+              fontWeight: 'bold',
+              transition: 'transform 0.2s ease, background-color 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(233, 20, 41, 0.1)';
+              e.currentTarget.style.transform = 'scale(1.04)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+          >
+            Trocar Perfil
+          </button>
         </div>
       </aside>
 
-      {/* 🎵 CONTEÚDO PRINCIPAL (As Telas do App) */}
       <main className="main-content" style={{ 
         backgroundColor: '#121212', 
         padding: '32px',
         overflowY: 'auto'
       }}>
         <Routes>
-          {/* 👇 Distribuindo a função de tocar música para as páginas que listam faixas */}
-          <Route path='/' element={<Home setMusicaAtual={setMusicaAtual} />} />
+          <Route path='/' element={<Home />} />
           <Route path='/select-perfil' element={<SelectPerfil onSelect={(u: any) => setUserLogado(u)} />} />
           <Route path='/album/:id' element={<DetalheAlbum setMusicaAtual={setMusicaAtual} />} />
           <Route path='/sua-biblioteca' element={<Biblioteca />} />
           
           <Route path='/albuns' element={<GerenciarCadastro />} />
           <Route path='/inserir-album' element={<FormularioCadastro />} />
-          <Route path='/musicas' element={<GerenciarMusicas setMusicaAtual={setMusicaAtual} />} />
+          <Route path='/musicas' element={<GerenciarMusicas />} />
           <Route path='/inserir-musica' element={<FormularioMusica />} />
           <Route path='/playlists' element={<GerenciarPlaylist />} />
           <Route path='/inserir-playlist' element={<FormularioPlaylist />} />
           <Route path='/usuarios' element={<GerenciarUsuarios />} />
           <Route path='/inserir-usuario' element={<FormularioUsuario />} />
+          <Route path="/musica/:id" element={<DetalheMusica />} />
         </Routes>
       </main>
 
-      {/* 💿 SIDEBAR DIREITA (Painel Tocando Agora Dinâmico) */}
       <aside className="sidebar-right" style={{
         backgroundColor: '#000000',
         padding: '24px 16px',
@@ -216,15 +191,14 @@ function App() {
       }}>
         <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 8px 0', color: '#fff' }}>Tocando agora</h3>
         <div style={{ width: '100%', aspectRatio: '1/1', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}>
-          <img className="now-playing-visual" src={musicaAtual.capaUrl} alt="Foto do Artista" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img className="now-playing-visual" src={musicaAtual?.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&q=80"} alt="Foto do Artista" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
         <div style={{ marginTop: '4px' }}>
-          <h4 style={{ margin: '0 0 4px 0', fontSize: '1.1rem', fontWeight: 700 }}>{musicaAtual.nome}</h4>
-          <p style={{ color: '#b3b3b3', fontSize: '0.875rem', margin: 0, fontWeight: 500 }}>{musicaAtual.artista}</p>
+          <h4 style={{ margin: '0 0 4px 0', fontSize: '1.1rem', fontWeight: 700 }}>{musicaAtual?.nome || "Nenhuma faixa selecionada"}</h4>
+          <p style={{ color: '#b3b3b3', fontSize: '0.875rem', margin: 0, fontWeight: 500 }}>{musicaAtual?.artista || "-"}</p>
         </div>
       </aside>
 
-      {/* 🎛️ CONTROLES DO PLAYER (Barra Inferior Dinâmica Conectada) */}
       <footer className="player-bar" style={{
         backgroundColor: '#181818',
         borderTop: '1px solid #282828',
@@ -234,16 +208,14 @@ function App() {
         justifyContent: 'space-between',
         boxSizing: 'border-box'
       }}>
-        {/* Info da Faixa */}
         <div className="track-info" style={{ display: 'flex', alignItems: 'center', gap: '14px', width: '30%' }}>
-          <img src={musicaAtual.capaUrl} alt="Capa" style={{ width: '56px', height: '56px', borderRadius: '4px', objectFit: 'cover', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }} />
+          <img src={musicaAtual?.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&q=80"} alt="Capa" style={{ width: '56px', height: '56px', borderRadius: '4px', objectFit: 'cover', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }} />
           <div style={{ overflow: 'hidden' }}>
-            <h5 style={{ margin: '0 0 2px 0', fontSize: '0.875rem', color: '#fff', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{musicaAtual.nome}</h5>
-            <p style={{ margin: 0, color: '#b3b3b3', fontSize: '0.75rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{musicaAtual.artista}</p>
+            <h5 style={{ margin: '0 0 2px 0', fontSize: '0.875rem', color: '#fff', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{musicaAtual?.nome || "Sem música"}</h5>
+            <p style={{ margin: 0, color: '#b3b3b3', fontSize: '0.75rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{musicaAtual?.artista || "-"}</p>
           </div>
         </div>
 
-        {/* Controles Globais do Player */}
         <div className="player-controls" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', width: '40%' }}>
           <div className="buttons" style={{ display: 'flex', alignItems: 'center', gap: '24px', fontSize: '1.1rem', color: '#b3b3b3' }}>
             <span style={{ cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.color = '#fff'} onMouseLeave={(e) => e.currentTarget.style.color = '#b3b3b3'}>⏮</span>
@@ -261,7 +233,6 @@ function App() {
             <span style={{ cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.color = '#fff'} onMouseLeave={(e) => e.currentTarget.style.color = '#b3b3b3'}>⏭</span>
           </div>
           
-          {/* 👇 PROGRESSO TOTALMENTE DINÂMICO E CALCADO NO ARQUIVO MP3 👇 */}
           <div className="playback-bar" style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', fontSize: '0.75rem', color: '#b3b3b3' }}>
             <span>{formatarTempo(currentTime)}</span>
             <div className="progress-bar" style={{ flex: 1, height: '4px', background: '#4f4f4f', borderRadius: '2px', cursor: 'pointer', position: 'relative' }}>
@@ -276,7 +247,6 @@ function App() {
           </div>
         </div>
 
-        {/* Volume Ativo Conectado */}
         <div className="volume-controls" style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '30%', justifyContent: 'flex-end', color: '#b3b3b3' }}>
           <span style={{ fontSize: '1rem' }}>🔊</span>
           <input 

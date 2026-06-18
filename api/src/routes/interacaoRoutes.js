@@ -1,11 +1,8 @@
-// src/routes/interacaoRoutes.js
 const express = require('express');
 const router = express.Router();
-const interacaoController = require('../controllers/InteracaoController'); // 👈 ATENÇÃO AQUI
+const interacaoController = require('../controllers/InteracaoController');
 
-// ... rotas
-
-router.post('/biblioteca', interacaoController.curtirAlbum);
+router.post('/biblioteca', interacaoController.curtirMusica);
 router.get('/biblioteca/:userId', interacaoController.getBibliotecaUsuario);
 router.post('/review', interacaoController.criarReview);
 router.get('/review/:albumId', interacaoController.getReviewsPorAlbum);
