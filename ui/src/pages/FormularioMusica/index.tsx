@@ -11,43 +11,45 @@ export default function FormularioMusica() {
   const [defaultAlbum, setDefaultAlbum] = useState('');
   const [titulo, setTitulo] = useState('');
   const [artista, setArtista] = useState('');
+  // 🟢 Mudou o padrão para vazio para o usuário poder escrever o gênero livremente
+  const [genero, setGenero] = useState(''); 
   const [albumId, setAlbumId] = useState('');
-  const [audioUrl, setAudioUrl] = useState(''); // 👈 Novo estado para o link do áudio
+  const [audioUrl, setAudioUrl] = useState(''); 
   const [albuns, setAlbuns] = useState<Album[]>([]);
   
   const navigate = useNavigate();
 
-  // Busca os álbuns para preencher o campo de seleção (select)
   useEffect(() => {
-  axios.get('http://localhost:5000/album')
-    .then(res => {
-      setAlbuns(res.data);
+    axios.get('http://localhost:5000/album')
+      .then(res => {
+        setAlbuns(res.data);
 
-      const padrao = res.data.find(
-        (a: any) => a.nome === "Músicas Recomendadas"
-      );
+        const padrao = res.data.find(
+          (a: any) => a.nome === "Músicas Recomendadas"
+        );
 
-      if (padrao) {
-        setDefaultAlbum(padrao._id);
-      }
-    })
-    .catch(err => console.error(err));
-}, []);
+        if (padrao) {
+          setDefaultAlbum(padrao._id);
+        }
+      })
+      .catch(err => console.error(err));
+  }, []);
 
   const handleSalvar = (e: React.FormEvent) => {
     e.preventDefault();
 
-  const dadosDaMusica = {
-    nome: titulo,
-    artista,
-    albumId: albumId === "" ? defaultAlbum : albumId, // 👈 TEM QUE SER O ID REAL
-    audioUrl
-  };
+    const dadosDaMusica = {
+      nome: titulo,
+      artista,
+      genero: genero.trim(), // Envia o gênero sem espaços sobrando
+      albumId: albumId === "" ? defaultAlbum : albumId, 
+      audioUrl
+    };
 
     axios.post('http://localhost:5000/musica', dadosDaMusica)
       .then(() => {
         alert("Música salva com sucesso!");
-        navigate('/musicas');
+        navigate('/'); 
       })
       .catch(err => alert("Erro ao salvar: " + (err.response?.data?.message || err.message)));
   };
@@ -58,22 +60,38 @@ export default function FormularioMusica() {
       
       <form onSubmit={handleSalvar} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         
+        {/* Título */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#b3b3b3' }}>Título da Música</label>
           <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} required style={{ background: '#333', border: 'none', padding: '12px', borderRadius: '4px', color: '#fff' }} placeholder="Ex: Starboy" />
         </div>
 
+        {/* Artista */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#b3b3b3' }}>Artista / Banda</label>
           <input type="text" value={artista} onChange={e => setArtista(e.target.value)} required style={{ background: '#333', border: 'none', padding: '12px', borderRadius: '4px', color: '#fff' }} placeholder="Ex: The Weeknd" />
         </div>
 
-        {/* 🔊 NOVO CAMPO: URL do arquivo de áudio */}
+        {/* 🟢 ATUALIZADO: Mudado de <select> para <input> para permitir qualquer gênero criado */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#b3b3b3' }}>Gênero Musical</label>
+          <input 
+            type="text" 
+            value={genero} 
+            onChange={e => setGenero(e.target.value)} 
+            required 
+            style={{ background: '#333', border: 'none', padding: '12px', borderRadius: '4px', color: '#fff' }} 
+            placeholder="Ex: Pop, Rock, Lo-Fi, etc." 
+          />
+        </div>
+
+        {/* URL do Áudio */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#b3b3b3' }}>URL do Arquivo de Áudio (.mp3)</label>
           <input type="text" value={audioUrl} onChange={e => setAudioUrl(e.target.value)} required style={{ background: '#333', border: 'none', padding: '12px', borderRadius: '4px', color: '#fff' }} placeholder="https://www.site.com/musica.mp3" />
         </div>
 
+        {/* Vincular ao Álbum */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#b3b3b3' }}>Vincular ao Álbum</label>
           <select value={albumId} onChange={e => setAlbumId(e.target.value)} style={{ background: '#333', border: 'none', padding: '12px', borderRadius: '4px', color: '#fff', cursor: 'pointer' }}>

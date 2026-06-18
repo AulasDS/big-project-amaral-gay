@@ -4,16 +4,17 @@ const Usuario = require('../models/Usuario');
 
 const interacaoController = {
     // POST /biblioteca (Regra 4)
-    curtirAlbum: async (req, res) => {
+    // 🟢 Atualizado de curtirAlbum para curtirMusica e focado em musicaId
+    curtirMusica: async (req, res) => {
         try {
-            const { userId, albumId } = req.body;
-            if (!userId || !albumId) return res.status(400).json({ message: 'Falta userId ou albumId' });
+            const { userId, musicaId } = req.body;
+            if (!userId || !musicaId) return res.status(400).json({ message: 'Falta userId ou musicaId' });
 
-            const curtida = await Biblioteca.create({ userId, albumId });
-            return res.status(201).json({ message: 'Álbum adicionado à biblioteca!', data: curtida });
+            const curtida = await Biblioteca.create({ userId, musicaId });
+            return res.status(201).json({ message: 'Música adicionada à biblioteca!', data: curtida });
         } catch (error) {
             if (error.code === 11000) {
-                return res.status(400).json({ message: 'Você já curtiu este álbum!' });
+                return res.status(400).json({ message: 'Você já curtiu esta música!' });
             }
             return res.status(500).json({ message: 'Erro ao curtir.', error: error.message });
         }
@@ -23,8 +24,8 @@ const interacaoController = {
     getBibliotecaUsuario: async (req, res) => {
         try {
             const { userId } = req.params;
-            // .populate traz os dados reais dos álbuns anexados à curtida
-            const curtidas = await Biblioteca.find({ userId }).populate('albumId');
+            // 🟢 .populate alterado de 'albumId' para 'musicaId' para trazer os dados reais da música
+            const curtidas = await Biblioteca.find({ userId }).populate('musicaId');
             return res.status(200).json(curtidas);
         } catch (error) {
             return res.status(500).json({ message: 'Erro ao carregar biblioteca.', error: error.message });

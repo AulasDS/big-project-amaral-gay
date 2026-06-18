@@ -6,16 +6,16 @@ const BibliotecaSchema = new mongoose.Schema({
         ref: 'Usuario', 
         required: true 
     },
-    albumId: { 
+    musicaId: { 
         type: mongoose.Schema.Types.ObjectId, 
-        ref: 'Album', 
+        ref: 'Musica', 
         required: true 
     }
 }, {
     timestamps: true
 });
 
-// Impede que o mesmo usuário curta o mesmo álbum mais de uma vez
-BibliotecaSchema.index({ userId: 1, albumId: 1 }, { unique: true });
+// 🟢 Impede que o mesmo usuário curta a mesma música mais de uma vez
+BibliotecaSchema.index({ userId: 1, musicaId: 1 }, { unique: true });
 
 module.exports = mongoose.model('Biblioteca', BibliotecaSchema);
