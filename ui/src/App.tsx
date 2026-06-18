@@ -19,7 +19,7 @@ import DetalheMusica from './pages/DetalheMusica';
 
 function App() {
   const [userLogado, setUserLogado] = useState<any>(null);
-  const [carregandoToken, setCarregandoToken] = useState(true); // 🟢 Controla a checagem inicial do localStorage
+  const [carregandoToken, setCarregandoToken] = useState(true); 
   const navigate = useNavigate();
 
   const [musicaAtual, setMusicaAtual] = useState<any>(null); 
@@ -34,7 +34,7 @@ function App() {
     if (idSalvo && nomeSalvo) {
       setUserLogado({ _id: idSalvo, nome: nomeSalvo });
     }
-    setCarregandoToken(false); // 🟢 Terminou de checar se existe perfil salvo
+    setCarregandoToken(false); 
   }, []);
 
   useEffect(() => {
@@ -42,11 +42,13 @@ function App() {
       audioRef.current.load();
       setCurrentTime(0);
       
+      // 🟢 Garante o estado visual ativo imediatamente ao carregar uma nova faixa
+      setIsPlaying(true); 
+      
       audioRef.current.play()
-        .then(() => setIsPlaying(true))
-        .catch(() => {
+        .catch((err) => {
           setIsPlaying(false);
-          console.log("Autoplay inicial aguardando interação do usuário.");
+          console.log("Autoplay aguardando interação do usuário:", err);
         });
     }
   }, [musicaAtual]);
@@ -77,12 +79,10 @@ function App() {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  // 🟢 Evita renderizar qualquer rota antes de ler o localStorage
   if (carregandoToken) {
     return <div style={{ backgroundColor: '#000000', minHeight: '100vh' }} />;
   }
 
-  // 🟢 Se não houver usuário logado após a checagem, exibe APENAS a tela de abertura de forma limpa
   if (!userLogado) {
     return <TelaAbertura onLoginSucesso={(usuario) => setUserLogado(usuario)} />;
   }
@@ -95,9 +95,11 @@ function App() {
       fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
     }}>
       
+      {/* 🟢 Adicionado 'autoPlay' nativo na tag para sincronismo com os cliques externos */}
       <audio 
         ref={audioRef} 
         src={musicaAtual?.audioUrl || ""} 
+        autoPlay
         onTimeUpdate={() => {
           if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
         }}
@@ -167,11 +169,14 @@ function App() {
           <Route path='/' element={<Home />} />
           <Route path='/select-perfil' element={<SelectPerfil onSelect={(u: any) => setUserLogado(u)} />} />
           <Route path='/album/:id' element={<DetalheAlbum setMusicaAtual={setMusicaAtual} />} />
-          <Route path='/sua-biblioteca' element={<Biblioteca />} />
+          <Route path='/biblioteca' element={<Biblioteca />} />
           
           <Route path='/albuns' element={<GerenciarCadastro />} />
           <Route path='/inserir-album' element={<FormularioCadastro />} />
-          <Route path='/musicas' element={<GerenciarMusicas />} />
+          
+          {/* 🟢 Injetado a propriedade setMusicaAtual na rota para poder ativar o player ao clicar na música */}
+          <Route path='/musicas' element={<GerenciarMusicas setMusicaAtual={setMusicaAtual} />} />
+          
           <Route path='/inserir-musica' element={<FormularioMusica />} />
           <Route path='/playlists' element={<GerenciarPlaylist />} />
           <Route path='/inserir-playlist' element={<FormularioPlaylist />} />

@@ -8,6 +8,7 @@ interface Musica {
   artista: string;
   genero: string;
   audioUrl: string;
+  capaUrl?: string; // 🟢 Certificado que a interface aceita capaUrl
   albumId?: string;
 }
 
@@ -24,7 +25,6 @@ export default function Home() {
   const [musicas, setMusicas] = useState<Musica[]>([]);
   const [albuns, setAlbuns] = useState<Album[]>([]); 
   
-  // 🟢 Começa apenas com 'Álbuns' e 'Geral'. O resto vai vir do banco de dados!
   const [generosDisponiveis, setGenerosDisponiveis] = useState<string[]>(['Álbuns', 'Geral']);
   const [generoSelecionado, setGeneroSelecionado] = useState('Geral');
   const [hoveredId, setHoveredId] = useState<string | null>(null);
@@ -37,22 +37,18 @@ export default function Home() {
     return 'Boa noite';
   };
 
-  // 🟢 NOVO EFFECT: Mapeia e descobre os gêneros reais salvos nas músicas do teu banco
   useEffect(() => {
     axios.get('http://localhost:5000/musica')
       .then((res) => {
         const dados: Musica[] = res.data;
-        // Pega todos os gêneros das músicas, limpa os espaços e remove repetidos
         const generosUnicos = Array.from(
           new Set(dados.map(m => m.genero ? m.genero.trim() : '').filter(g => g !== ''))
         );
-        // Junta os botões fixos com os gêneros reais que existem no banco
         setGenerosDisponiveis(['Álbuns', 'Geral', ...generosUnicos]);
       })
       .catch((err) => console.error('Erro ao listar gêneros:', err));
   }, []);
 
-  // 🟢 Busca as músicas ou álbuns dependendo do filtro ativo
   useEffect(() => {
     if (generoSelecionado === 'Álbuns') {
       axios
@@ -89,7 +85,6 @@ export default function Home() {
           </h1>
         </div>
 
-        {/* Filtros agora totalmente automáticos */}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
           {generosDisponiveis.map((gen) => {
             const isActive = generoSelecionado === gen;
@@ -120,7 +115,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main>
+      <main style={{ marginTop: '32px' }}>
         <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '16px', letterSpacing: '-0.02em' }}>
           {generoSelecionado === 'Álbuns' 
             ? 'Todos os Álbuns' 
@@ -210,7 +205,8 @@ export default function Home() {
                   >
                     <div style={{ width: '100%', aspectRatio: '1/1', borderRadius: '6px', overflow: 'hidden' }}>
                       <img
-                        src='https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=300'
+                        /* 🟢 Alterado aqui para renderizar dinamicamente a capaUrl da música vinda do Back-end */
+                        src={musica.capaUrl || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=300'}
                         alt={musica.nome}
                         style={{ width: '100%', height: '100%', objectFit: 'cover', transform: isHovered ? 'scale(1.04)' : 'scale(1)', transition: 'transform 0.3s ease' }}
                       />

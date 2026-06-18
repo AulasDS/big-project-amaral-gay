@@ -4,14 +4,23 @@ const Album = require('../models/Album');
 module.exports = {
     create: async (req, res) => {
         try {
-            const { nome, artista, genero, descricao, feat, albumId, audioUrl } = req.body;
+            let { nome, artista, genero, capaUrl, audioUrl, albumId } = req.body;
+
+            // 🟢 INTEGRAÇÃO INTELIGENTE DA CAPA:
+            // Se a música pertence a um álbum e não foi fornecida uma capaUrl específica para ela,
+            // herdamos automaticamente a capa cadastrada no álbum pai.
+            if (!capaUrl && albumId) {
+                const albumPai = await Album.findById(albumId);
+                if (albumPai && albumPai.capaUrl) {
+                    capaUrl = albumPai.capaUrl;
+                }
+            }
 
             const novaMusica = new Musica({
                 nome,
                 artista,
                 genero,
-                descricao,
-                feat,
+                capaUrl, // Salva o link recebido ou o herdado do álbum
                 audioUrl,
                 albumId
             });
@@ -35,7 +44,6 @@ module.exports = {
             const { genero } = req.query;
             let filtro = {};
 
-            // 🟢 Se o front-end enviou um gênero específico, filtramos as MÚSICAS por ele
             if (genero && genero !== 'Geral') {
                 filtro.genero = genero;
             }
@@ -61,11 +69,11 @@ module.exports = {
     update: async (req, res) => {
         try {
             const { id } = req.params;
-            const { nome, artista, genero, descricao, feat, audioUrl, albumId } = req.body;
+            const { nome, artista, genero, capaUrl, audioUrl, albumId } = req.body;
 
             const musicaAtualizada = await Musica.findByIdAndUpdate(
                 id,
-                { nome, artista, genero, descricao, feat, audioUrl, albumId },
+                { nome, artista, genero, capaUrl, audioUrl, albumId },
                 { new: true }
             );
 
