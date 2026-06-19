@@ -38,7 +38,7 @@ interface DetalheAlbumProps {
 export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+
   // Estados principais da página
   const [album, setAlbum] = useState<Album | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,7 +49,7 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
   // Estados para o formulário de novos comentários
   const [comentario, setComentario] = useState('');
   const [nota, setNota] = useState(5);
-  
+
   // Captura as informações do usuário logado
   const userId = localStorage.getItem('userId');
   const userName = localStorage.getItem('userName');
@@ -87,8 +87,16 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
     }
 
     if (!curtido) {
+      // 🟢 AJUSTE CIRÚRGICO: Enviamos um ObjectId fictício estrutural para 'musicaId'
+      // Isso engana o índice único composto antigo do MongoDB e permite salvar múltiplos álbuns!
+      const dadosEnvio = {
+        userId,
+        albumId: id,
+        musicaId: "000000000000000000000000"
+      }
+
       // Salva o álbum na biblioteca do usuário ativo
-      axios.post('http://localhost:5000/biblioteca', { userId, albumId: id })
+      axios.post('http://localhost:5000/biblioteca', dadosEnvio)
         .then(() => {
           setCurtido(true);
         })
@@ -129,8 +137,8 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
     if (!comentario.trim()) return;
 
     const novaReview = {
-      userId: userId,     
-      albumId: id,        
+      userId: userId,
+      albumId: id,
       comentario: comentario,
       nota: nota
     };
@@ -140,7 +148,7 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
         alert("Crítica enviada com sucesso!");
         setComentario('');
         setNota(5);
-        
+
         if (album) {
           const reviewComNome = {
             ...res.data,
@@ -180,7 +188,7 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
     >
       {/* 🔙 Botão de Voltar com o mesmo estilo limpo */}
       <div style={{ padding: '24px 32px 0 32px' }}>
-        <button 
+        <button
           onClick={() => navigate('/')}
           style={{
             backgroundColor: 'rgba(0, 0, 0, 0.7)',
@@ -198,20 +206,20 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
       </div>
 
       {/* 🏞️ Seção Hero (Igual do DetalheMusica, combinando o design) */}
-      <section 
-        style={{ 
-          display: 'flex', 
-          alignItems: 'flex-end', 
-          gap: '24px', 
+      <section
+        style={{
+          display: 'flex',
+          alignItems: 'flex-end',
+          gap: '24px',
           padding: '24px 32px 40px 32px',
           background: 'linear-gradient(transparent, rgba(0,0,0,0.5))',
-          backgroundColor: '#242424' 
+          backgroundColor: '#242424'
         }}
       >
         <div style={{ width: '232px', height: '232px', minWidth: '232px', boxShadow: '0 4px 60px rgba(0,0,0,0.5)', borderRadius: '4px', overflow: 'hidden' }}>
-          <img 
-            src={album.capaUrl || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=300'} 
-            alt={album.nome} 
+          <img
+            src={album.capaUrl || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=300'}
+            alt={album.nome}
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         </div>
@@ -239,10 +247,10 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
 
       {/* Seção das Ações e Listagem */}
       <section style={{ padding: '40px 32px', display: 'flex', flexDirection: 'column', gap: '40px', background: 'linear-gradient(rgba(0,0,0,0.6) 0%, #121212 100%)' }}>
-        
+
         {/* 🟢 Barra de Ações: Play e Curtir Lado a Lado como em DetalheMusica */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-          <button 
+          <button
             onClick={tocarAlbumCompleto}
             style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: '#1ed760', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.5rem', transition: 'transform 0.2s' }}
             onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
@@ -252,7 +260,7 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
           </button>
 
           {/* 🟢 Botão de Curtir Álbum adicionado cirurgicamente */}
-          <button 
+          <button
             onClick={handleCurtirAlbum}
             style={{
               background: 'none',
@@ -281,7 +289,7 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
             <p style={{ color: '#b3b3b3', padding: '24px 16px', fontSize: '0.9rem' }}>Este álbum não tem nenhuma faixa cadastrada ainda.</p>
           ) : (
             album.musicas.map((musica, index) => (
-              <div 
+              <div
                 key={musica._id}
                 onClick={() => setMusicaAtual({
                   nome: musica.nome,
@@ -314,9 +322,9 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
             <form onSubmit={handleEnviarReview} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '32px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <label style={{ fontSize: '0.85rem', color: '#b3b3b3' }}>Sua avaliação como <strong>{userName}</strong>:</label>
-                <select 
-                  value={nota} 
-                  onChange={e => setNota(Number(e.target.value))} 
+                <select
+                  value={nota}
+                  onChange={e => setNota(Number(e.target.value))}
                   style={{ backgroundColor: '#2a2a2a', border: 'none', color: '#1ed760', padding: '6px 12px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
                 >
                   {[5, 4, 3, 2, 1].map(n => <option key={n} value={n}>{'⭐'.repeat(n)} ({n})</option>)}
@@ -324,8 +332,8 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
               </div>
 
               <div style={{ display: 'flex', gap: '10px' }}>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={comentario}
                   onChange={e => setComentario(e.target.value)}
                   placeholder="Deixe sua opinião ou resenha pública sobre o álbum..."

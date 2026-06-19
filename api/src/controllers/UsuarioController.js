@@ -2,21 +2,24 @@ const Usuario = require('../models/Usuario');
 
 class UsuarioController {
     // ➕ Criar um novo usuário/cliente
+    // ➕ Criar um novo usuário/cliente
     static async create(req, res) {
         try {
-            // Adicionado o campo 'tipo' vindo do formulário React
-            const { nome, email, tipo, nascimento } = req.body;
-            
-            // Removemos a obrigatoriedade estrita do nascimento para não travar o cadastro antigo
+            // 🟢 MAPEADO: O front envia 'dataNascimento', pegamos ele aqui
+            const { nome, email, tipo, dataNascimento, nascimento } = req.body;
+
             if (!nome || !email) {
                 return res.status(400).json({ message: "Dados inválidos. Nome e E-mail são obrigatórios." });
             }
 
+            // 🟢 TRATAMENTO DA DATA: Se o front mandou 'dataNascimento', convertemos para o campo 'nascimento' que o Model espera
+            const dataFinal = dataNascimento ? new Date(dataNascimento) : (nascimento ? new Date(nascimento) : null);
+
             const clienteData = {
                 nome,
                 email,
-                tipo: tipo || 'Ouvinte', // Padrão caso não seja enviado
-                nascimento
+                tipo: tipo || 'ouvinte',
+                nascimento: dataFinal // Salva o formato Date correto no banco
             };
 
             const newUsuario = await Usuario.create(clienteData);
@@ -24,8 +27,7 @@ class UsuarioController {
 
         } catch (error) {
             console.error("💥 ERRO CRÍTICO NO CADASTRO:", error);
-            
-            // Trata o erro clássico de e-mail duplicado (Código 11000 do MongoDB)
+
             if (error.code === 11000) {
                 return res.status(400).json({ message: 'Este e-mail já está sendo usado por outro perfil!' });
             }
@@ -39,7 +41,7 @@ class UsuarioController {
         try {
             const usuarios = await Usuario.find().sort({ criadoEm: -1 });
             // Retornamos os usuários direto para bater com o "res.data" do seu React!
-            return res.status(200).json(usuarios); 
+            return res.status(200).json(usuarios);
         } catch (error) {
             return res.status(500).json({ message: 'Erro ao encontrar usuários', error: error.message });
         }
@@ -50,7 +52,7 @@ class UsuarioController {
         try {
             const { id } = req.params;
             const usuario = await Usuario.findById(id);
-            
+
             if (!usuario) {
                 return res.status(404).json({ message: 'Usuário não encontrado' });
             }
@@ -65,16 +67,16 @@ class UsuarioController {
         try {
             const { id } = req.params;
             const { nome, email, tipo, nascimento } = req.body;
-            
+
             const updatedData = {
                 nome,
                 email,
                 tipo,
                 nascimento
             };
-            
+
             const updatedUsuario = await Usuario.findByIdAndUpdate(id, updatedData, { new: true });
-            
+
             if (!updatedUsuario) {
                 return res.status(404).json({ message: 'Usuário não encontrado' });
             }
@@ -89,7 +91,7 @@ class UsuarioController {
         try {
             const { id } = req.params;
             const deletedUsuario = await Usuario.findByIdAndDelete(id);
-            
+
             if (!deletedUsuario) {
                 return res.status(404).json({ message: 'Usuário não encontrado' });
             }
