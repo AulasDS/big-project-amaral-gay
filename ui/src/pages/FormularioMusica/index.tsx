@@ -11,8 +11,8 @@ export default function FormularioMusica() {
   const [defaultAlbum, setDefaultAlbum] = useState('');
   const [titulo, setTitulo] = useState('');
   const [artista, setArtista] = useState('');
-  // 🟢 Mudou o padrão para vazio para o usuário poder escrever o gênero livremente
   const [genero, setGenero] = useState(''); 
+  const [capaUrl, setCapaUrl] = useState('');
   const [albumId, setAlbumId] = useState('');
   const [audioUrl, setAudioUrl] = useState(''); 
   const [albuns, setAlbuns] = useState<Album[]>([]);
@@ -42,6 +42,7 @@ export default function FormularioMusica() {
       nome: titulo,
       artista,
       genero: genero.trim(), // Envia o gênero sem espaços sobrando
+      capaUrl,
       albumId: albumId === "" ? defaultAlbum : albumId, 
       audioUrl
     };
@@ -83,6 +84,12 @@ export default function FormularioMusica() {
             style={{ background: '#333', border: 'none', padding: '12px', borderRadius: '4px', color: '#fff' }} 
             placeholder="Ex: Pop, Rock, Lo-Fi, etc." 
           />
+        </div>
+
+        {/* URL da Capa */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#b3b3b3' }}>URL da Capa</label>
+          <input type="text" value={capaUrl} onChange={e => setCapaUrl(e.target.value)} required style={{ background: '#333', border: 'none', padding: '12px', borderRadius: '4px', color: '#fff' }} placeholder="https://www.site.com/capa.jpg" />
         </div>
 
         {/* URL do Áudio */}

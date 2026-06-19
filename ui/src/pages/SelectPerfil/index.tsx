@@ -15,6 +15,8 @@ export default function SelectPerfil({ onSelect }: { onSelect: (u: any) => void 
   const logarComo = (user: any) => {
     localStorage.setItem('userId', user._id);
     localStorage.setItem('userName', user.nome);
+    // 🟢 ÚNICA ALTERAÇÃO: Salva o tipo em minúsculo para a Navbar identificar
+    localStorage.setItem('userTipo', (user.tipo || 'ouvinte').toLowerCase());
     onSelect(user);
     navigate('/');
   };

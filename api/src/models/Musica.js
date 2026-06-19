@@ -10,6 +10,7 @@ const MusicaSchema = new mongoose.Schema({
         ref: 'Album'
     },
     ano: Number,
+    capaUrl: String,
     audioUrl: String    
 });
 
