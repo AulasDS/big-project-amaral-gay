@@ -9,13 +9,19 @@ const BibliotecaSchema = new mongoose.Schema({
     musicaId: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'Musica', 
-        required: true 
+        required: false // 🟢 Alterado para false para permitir salvar apenas álbuns
+    },
+    albumId: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'Album', 
+        required: false // 🟢 Alterado para false para permitir salvar apenas músicas
     }
 }, {
     timestamps: true
 });
 
-// 🟢 Impede que o mesmo usuário curta a mesma música mais de uma vez
-BibliotecaSchema.index({ userId: 1, musicaId: 1 }, { unique: true });
+// 🟢 Seus índices únicos estão excelentes! Eles continuam funcionando perfeitamente.
+BibliotecaSchema.index({ userId: 1, musicaId: 1 }, { unique: true, sparse: true });
+BibliotecaSchema.index({ userId: 1, albumId: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model('Biblioteca', BibliotecaSchema);

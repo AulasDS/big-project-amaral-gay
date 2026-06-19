@@ -3,29 +3,48 @@ const Review = require('../models/Review');
 const Usuario = require('../models/Usuario');
 
 const interacaoController = {
-    // POST /biblioteca (Regra 4)
-    // 🟢 Atualizado de curtirAlbum para curtirMusica e focado em musicaId
-    curtirMusica: async (req, res) => {
+    // POST /biblioteca
+    // 🟢 Atualizado para aceitar de forma flexível 'musicaId' ou 'albumId'
+    adicionarNaBiblioteca: async (req, res) => {
         try {
-            const { userId, musicaId } = req.body;
-            if (!userId || !musicaId) return res.status(400).json({ message: 'Falta userId ou musicaId' });
-
-            const curtida = await Biblioteca.create({ userId, musicaId });
-            return res.status(201).json({ message: 'Música adicionada à biblioteca!', data: curtida });
-        } catch (error) {
-            if (error.code === 11000) {
-                return res.status(400).json({ message: 'Você já curtiu esta música!' });
+            const { userId, musicaId, albumId } = req.body;
+            
+            if (!userId) {
+                return res.status(400).json({ message: 'Falta userId' });
             }
-            return res.status(500).json({ message: 'Erro ao curtir.', error: error.message });
+            if (!musicaId && !albumId) {
+                return res.status(400).json({ message: 'Falta informar o musicaId ou albumId para adicionar.' });
+            }
+
+            // 🟢 AJUSTE ESSENCIAL: Cria o objeto apenas com as chaves que realmente existem.
+            // Isso impede que o campo que ficou de fora seja salvo como 'null' e estoure o índice único do Mongo!
+            const dadosInsercao = { userId };
+            if (musicaId) dadosInsercao.musicaId = musicaId;
+            if (albumId) dadosInsercao.albumId = albumId;
+
+            const curtida = await Biblioteca.create(dadosInsercao);
+            
+            const tipoItem = musicaId ? 'Música' : 'Álbum';
+            return res.status(201).json({ message: `${tipoItem} adicionado(a) à biblioteca!`, data: curtida });
+        } catch (error) {
+            // Se você tiver um índice único composto no Mongoose para evitar duplicidade, ele cairá aqui
+            if (error.code === 11000) {
+                return res.status(400).json({ message: 'Você já curtiu/salvou este item!' });
+            }
+            return res.status(500).json({ message: 'Erro ao salvar na biblioteca.', error: error.message });
         }
     },
 
-    // GET /biblioteca/:userId (Regra 6)
+    // GET /biblioteca/:userId
     getBibliotecaUsuario: async (req, res) => {
         try {
             const { userId } = req.params;
-            // 🟢 .populate alterado de 'albumId' para 'musicaId' para trazer os dados reais da música
-            const curtidas = await Biblioteca.find({ userId }).populate('musicaId');
+            
+            // 🟢 Traz os dados reais preenchidos tanto para música quanto para álbum
+            const curtidas = await Biblioteca.find({ userId })
+                .populate('musicaId')
+                .populate('albumId');
+                
             return res.status(200).json(curtidas);
         } catch (error) {
             return res.status(500).json({ message: 'Erro ao carregar biblioteca.', error: error.message });

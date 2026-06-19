@@ -13,10 +13,10 @@ const UsuarioSchema = new mongoose.Schema({
         trim: true,
         lowercase: true
     },
-    tipo: { // 💡 Mudamos de 'plano' para 'tipo' para encaixar no seu React!
+    tipo: { // 💡 Mudamos os enums para minúsculo para casar com o React!
         type: String,
-        enum: ['Ouvinte', 'Artista'], // 👈 Bate certinho com as opções do seu <select>
-        default: 'Ouvinte'
+        enum: ['ouvinte', 'artista'], // 👈 🟢 Alterado para minúsculo!
+        default: 'ouvinte'           // 👈 🟢 Alterado para minúsculo!
     },
     nascimento: { // Mantivemos o campo caso você queira usar no futuro
         type: Date

@@ -5,7 +5,8 @@ import axios from 'axios';
 export default function FormularioUsuario() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
-  const [tipo, setTipo] = useState('Ouvinte');
+  // 🟢 Ajustado o estado inicial para minúsculo para bater com as regras da Navbar
+  const [tipo, setTipo] = useState('ouvinte');
   
   const navigate = useNavigate();
 
@@ -49,8 +50,9 @@ export default function FormularioUsuario() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#b3b3b3' }}>Tipo de Perfil</label>
           <select value={tipo} onChange={e => setTipo(e.target.value)} style={{ background: '#333', border: 'none', padding: '12px', borderRadius: '4px', color: '#fff', cursor: 'pointer' }}>
-            <option value="Ouvinte">Ouvinte (Free/Premium)</option>
-            <option value="Artista">Artista (Criador de Conteúdo)</option>
+            {/* 🟢 Alterados os values para minúsculo */}
+            <option value="ouvinte">Ouvinte (Free/Premium)</option>
+            <option value="artista">Artista (Criador de Conteúdo)</option>
           </select>
         </div>
 

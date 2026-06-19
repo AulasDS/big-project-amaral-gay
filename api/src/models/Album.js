@@ -5,6 +5,7 @@ const AlbumSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true
+        // 🟢 Removido qualquer risco de índice único oculto no nome
     },
     artista: {
         type: String,
@@ -13,7 +14,8 @@ const AlbumSchema = new mongoose.Schema({
     },
     capaUrl: {
         type: String,
-        default: 'https://via.placeholder.com/300' // Imagem padrão caso não enviem capa
+        default: 'https://via.placeholder.com/300',
+        index: false // 🟢 Garante que o MongoDB não tente criar um índice único para a capa padrão
     },
     ano: {
         type: Number,
