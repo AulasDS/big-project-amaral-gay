@@ -12,6 +12,7 @@ interface Musica {
   feat?: string;
   audioUrl: string;
   albumId?: string;
+  capaUrl?: string; // Garantindo compatibilidade com o card lateral do App.tsx
 }
 
 interface Comentario {
@@ -21,21 +22,25 @@ interface Comentario {
   data: string;
 }
 
-export default function DetalheMusica() {
+// 🟢 Adicionada a tipagem para receber a função do App.tsx
+interface DetalheMusicaProps {
+  setMusicaAtual: (musica: any, listaDeMusicas?: any[]) => void;
+}
+
+export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [musica, setMusica] = useState<Musica | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   
-  // 🟢 Estados unificados e identificador do usuário ativo
   const [curtido, setCurtido] = useState(false);
   const userId = localStorage.getItem('userId'); 
   const [nota, setNota] = useState(5);
   const [textoComentario, setTextoComentario] = useState('');
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
+  const [isHoveredPlay, setIsHoveredPlay] = useState(false);
 
   useEffect(() => {
-    // 1. Busca os detalhes da música
     axios
       .get(`http://localhost:5000/musica/${id}`)
       .then((res) => {
@@ -50,7 +55,6 @@ export default function DetalheMusica() {
         setErro('Não foi possível carregar os detalhes desta música.');
       });
 
-    // 2. 🟢 Verifica se o usuário atual já favoritou esta música anteriormente
     if (userId && id) {
       axios.get(`http://localhost:5000/biblioteca/${userId}`)
         .then((res) => {
@@ -63,7 +67,17 @@ export default function DetalheMusica() {
     }
   }, [id, userId]);
 
-  // 🟢 Função responsável por alternar a curtida e salvar no MongoDB
+  // 🟢 AGORA ATIVANDO O PLAYER PRINCIPAL: Dispara a música para o rodapé do App.tsx
+  const handlePlayMusica = () => {
+    if (!musica) return;
+    
+    // Fornece o objeto estruturado com capaUrl (ou fallback) para alimentar o App.tsx perfeitamente
+    setMusicaAtual({
+      ...musica,
+      capaUrl: musica.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&q=80"
+    });
+  };
+
   const handleCurtirMusica = () => {
     if (!userId) {
       alert("Selecione um perfil de usuário para curtir músicas.");
@@ -71,7 +85,6 @@ export default function DetalheMusica() {
     }
 
     if (!curtido) {
-      // Adiciona na coleção da biblioteca do usuário
       axios.post('http://localhost:5000/biblioteca', { userId, musicaId: id })
         .then(() => {
           setCurtido(true);
@@ -81,8 +94,6 @@ export default function DetalheMusica() {
           alert("Não foi possível adicionar à biblioteca.");
         });
     } else {
-      // Desativa o coração visualmente 
-      // (Se seu backend tiver a rota de remoção, você pode adicionar o axios.delete aqui futuramente)
       setCurtido(false);
     }
   };
@@ -163,7 +174,7 @@ export default function DetalheMusica() {
       >
         <div style={{ width: '232px', height: '232px', minWidth: '232px', boxShadow: '0 4px 60px rgba(0,0,0,0.5)', borderRadius: '4px', overflow: 'hidden' }}>
           <img 
-            src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=300" 
+            src={musica.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=300"} 
             alt={musica.nome} 
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
@@ -190,14 +201,37 @@ export default function DetalheMusica() {
       </section>
 
       {/* Seção do Player e Interações */}
-      <section style={{ padding: '40px 32px', display: 'flex', flexDirection: 'column', gap: '40px', background: 'linear-gradient(rgba(0,0,0,0.6) 0%, #121212 100%)' }}>
+      <section style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: '40px', background: 'linear-gradient(rgba(0,0,0,0.6) 0%, #121212 100%)' }}>
         
-        {/* Player & Curtir */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', maxWidth: '600px' }}>
-          <div style={{ backgroundColor: '#181818', padding: '16px 24px', borderRadius: '12px', flexGrow: 1, boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
-            <audio src={musica.audioUrl} controls style={{ width: '100%', borderRadius: '8px' }} />
-          </div>
+        {/* Área de Ação: Botão Verde Grande Limpo e Ícones Auxiliares */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+          
+          {/* Botão de Play Verde Grande Circular */}
+          <button
+            onClick={handlePlayMusica}
+            onMouseEnter={() => setIsHoveredPlay(true)}
+            onMouseLeave={() => setIsHoveredPlay(false)}
+            style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '50%',
+              backgroundColor: '#1ed760',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'transform 0.1s ease, background-color 0.1s ease',
+              transform: isHoveredPlay ? 'scale(1.04)' : 'scale(1)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+            }}
+          >
+            <svg viewBox="0 0 24 24" style={{ width: '26px', height: '26px', fill: '#000', marginLeft: '4px' }}>
+              <path d="M7.05 3.606l13.49 7.77a.75.75 0 010 1.298l-13.49 7.77a.75.75 0 01-1.125-.65V4.256a.75.75 0 011.125-.65z" />
+            </svg>
+          </button>
 
+          {/* Botão Curtir Minimalista */}
           <button 
             onClick={handleCurtirMusica}
             style={{
@@ -206,6 +240,10 @@ export default function DetalheMusica() {
               cursor: 'pointer',
               fontSize: '2rem',
               color: curtido ? '#1ed760' : '#b3b3b3',
+              padding: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               transition: 'transform 0.2s ease',
             }}
           >

@@ -10,7 +10,7 @@ export default function TelaAbertura({ onLoginSucesso }: TelaAberturaProps) {
   const [abaAtiva, setAbaAtiva] = useState<'login' | 'cadastro'>('login');
 
   // Estados dos campos de entrada
-  const [emailLogin, setEmailLogin] = useState('');
+  const [nomeLogin, setNomeLogin] = useState(''); // 🟢 Alterado de emailLogin para nomeLogin
   const [nome, setNome] = useState('');
   const [emailCadastro, setEmailCadastro] = useState('');
   const [dataNascimento, setDataNascimento] = useState('');
@@ -22,30 +22,32 @@ export default function TelaAbertura({ onLoginSucesso }: TelaAberturaProps) {
 
     localStorage.setItem('userId', idGerado);
     localStorage.setItem('userName', nomeGerado);
+    localStorage.setItem('userTipo', (user.tipo || 'ouvinte').toLowerCase());
 
     onLoginSucesso({ _id: idGerado, nome: nomeGerado });
     window.location.href = '/';
   };
 
-  // 1. ENTRAR EM PERFIL EXISTENTE VIA E-MAIL (Fake Login / GET)
+  // 1. ENTRAR EM PERFIL EXISTENTE VIA NOME DE USUÁRIO (Fake Login / GET)
   const handleLoginExistente = (e: React.FormEvent) => {
     e.preventDefault();
 
     axios.get('http://localhost:5000/usuario')
       .then(res => {
         const usuarios: any[] = res.data;
-        // Procura pelo e-mail digitado
+        
+        // 🟢 Procura EXATAMENTE pelo nome digitado (ignorando espaços vazios e maiúsculas/minúsculas)
         const usuarioEncontrado = usuarios.find(
-          u => u.email?.toLowerCase().trim() === emailLogin.toLowerCase().trim()
+          u => u.nome?.toLowerCase().trim() === nomeLogin.toLowerCase().trim()
         );
 
         if (usuarioEncontrado) {
           alert(`Bem-vindo de volta, ${usuarioEncontrado.nome}!`);
           salvarSessaoELogar(usuarioEncontrado);
         } else {
-          alert("Nenhum perfil encontrado com este e-mail. Que tal se inscrever?");
+          alert("Nenhum perfil encontrado com este nome de usuário. Que tal se inscrever?");
           setAbaAtiva('cadastro');
-          setEmailCadastro(emailLogin); // Preenche o e-mail no cadastro para facilitar
+          setNome(nomeLogin); // Preenche o nome no cadastro automaticamente para facilitar
         }
       })
       .catch(err => {
@@ -67,7 +69,8 @@ export default function TelaAbertura({ onLoginSucesso }: TelaAberturaProps) {
     axios.post('http://localhost:5000/usuario', novoUsuario)
       .then((res) => {
         alert(`Conta criada com sucesso! Bem-vindo, ${nome}.`);
-        salvarSessaoELogar(res.data);
+        // 🟢 Repassa o 'data' de dentro do seu controller
+        salvarSessaoELogar(res.data.data);
       })
       .catch(err => {
         console.error(err);
@@ -111,13 +114,13 @@ export default function TelaAbertura({ onLoginSucesso }: TelaAberturaProps) {
             </h1>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-              <label style={{ fontSize: '0.875rem', fontWeight: 'bold' }}>E-mail ou nome de usuário</label>
+              <label style={{ fontSize: '0.875rem', fontWeight: 'bold' }}>Nome de usuário</label>
               <input
-                type="email"
-                value={emailLogin}
-                onChange={e => setEmailLogin(e.target.value)}
+                type="text" // 🟢 Corrigido de "email" para "text" para aceitar qualquer caractere livremente
+                value={nomeLogin}
+                onChange={e => setNomeLogin(e.target.value)}
                 required
-                placeholder="E-mail ou nome de usuário"
+                placeholder="Insira seu nome de usuário"
                 style={{
                   backgroundColor: '#121212',
                   border: '1px solid #727272',
@@ -197,12 +200,10 @@ export default function TelaAbertura({ onLoginSucesso }: TelaAberturaProps) {
                 type="date"
                 value={dataNascimento}
                 onChange={e => {
-                  const valor = e.target.value; // Formato nativo: YYYY-MM-DD
+                  const valor = e.target.value;
                   const partes = valor.split('-');
 
-                  // Se o usuário conseguiu digitar um ano com mais de 4 dígitos (ex: 20201)
                   if (partes[0] && partes[0].length > 4) {
-                    // Corta o ano estritamente em 4 dígitos e reconstrói a data
                     const anoCortado = partes[0].slice(0, 4);
                     setDataNascimento(`${anoCortado}-${partes[1] || ''}-${partes[2] || ''}`);
                   } else {
@@ -210,7 +211,7 @@ export default function TelaAbertura({ onLoginSucesso }: TelaAberturaProps) {
                   }
                 }}
                 required
-                max="2026-12-31" // Limita o teto máximo para o ano atual (2026)
+                max="2026-12-31"
                 style={{
                   backgroundColor: '#121212',
                   border: '1px solid #727272',

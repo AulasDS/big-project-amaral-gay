@@ -13,7 +13,7 @@ interface Musica {
 
 interface Review {
   _id: string;
-  userId: string;
+  userId: string | { _id: string; nome: string };
   usuarioNome?: string;
   comentario: string;
   nota: number;
@@ -32,30 +32,23 @@ interface Album {
 }
 
 interface DetalheAlbumProps {
-  setMusicaAtual: (musica: any) => void;
+  setMusicaAtual: (musica: any, listaDeMusicas?: any[]) => void;
 }
 
 export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  // Estados principais da página
   const [album, setAlbum] = useState<Album | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // 🟢 Estados de curtida mapeados da mesma forma que em DetalheMusica
   const [curtido, setCurtido] = useState(false);
-
-  // Estados para o formulário de novos comentários
   const [comentario, setComentario] = useState('');
   const [nota, setNota] = useState(5);
 
-  // Captura as informações do usuário logado
   const userId = localStorage.getItem('userId');
   const userName = localStorage.getItem('userName');
 
   useEffect(() => {
-    // 1. Busca os dados do álbum específico e suas faixas/reviews
     axios.get(`http://localhost:5000/album/${id}`)
       .then(res => {
         setAlbum(res.data);
@@ -66,7 +59,6 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
         setLoading(false);
       });
 
-    // 2. 🟢 Verifica de maneira síncrona se o usuário ativo já curtiu este álbum na coleção biblioteca
     if (userId && id) {
       axios.get(`http://localhost:5000/biblioteca/${userId}`)
         .then((res) => {
@@ -79,7 +71,6 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
     }
   }, [id, userId]);
 
-  // 🟢 Função responsável por favoritar ou desfavoritar o álbum na base de dados
   const handleCurtirAlbum = () => {
     if (!userId) {
       alert("Selecione um perfil de usuário para curtir álbuns.");
@@ -87,15 +78,12 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
     }
 
     if (!curtido) {
-      // 🟢 AJUSTE CIRÚRGICO: Enviamos um ObjectId fictício estrutural para 'musicaId'
-      // Isso engana o índice único composto antigo do MongoDB e permite salvar múltiplos álbuns!
       const dadosEnvio = {
         userId,
         albumId: id,
         musicaId: "000000000000000000000000"
-      }
+      };
 
-      // Salva o álbum na biblioteca do usuário ativo
       axios.post('http://localhost:5000/biblioteca', dadosEnvio)
         .then(() => {
           setCurtido(true);
@@ -105,12 +93,17 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
           alert("Não foi possível adicionar este álbum à sua biblioteca.");
         });
     } else {
-      // Estado visual desativado (Seu backend poderá tratar a deleção futuramente nessa mesma rota)
-      setCurtido(false);
+      axios.delete(`http://localhost:5000/biblioteca/${userId}/${id}`)
+        .then(() => {
+          setCurtido(false);
+        })
+        .catch(err => {
+          console.error("Erro ao remover álbum da biblioteca:", err);
+          setCurtido(false); 
+        });
     }
   };
 
-  // Função para tocar o álbum inteiro a partir da primeira faixa
   const tocarAlbumCompleto = () => {
     if (album?.musicas && album.musicas.length > 0) {
       const primeiraFaixa = album.musicas[0];
@@ -119,13 +112,17 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
         artista: primeiraFaixa.artista || album.artista,
         audioUrl: primeiraFaixa.audioUrl,
         capaUrl: album.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&q=80"
-      });
+      }, album.musicas.map(m => ({
+        nome: m.nome,
+        artista: m.artista || album.artista,
+        audioUrl: m.audioUrl,
+        capaUrl: album.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&q=80"
+      })));
     } else {
       alert("Este álbum ainda não possui músicas cadastradas!");
     }
   };
 
-  // Função para enviar o comentário/crítica para o backend
   const handleEnviarReview = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -177,16 +174,23 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
     );
   }
 
+  const extrairNomeUsuario = (rev: Review) => {
+    if (rev.usuarioNome) return rev.usuarioNome;
+    if (rev.userId && typeof rev.userId === 'object' && 'nome' in rev.userId) {
+      return rev.userId.nome;
+    }
+    return "Usuário Premium";
+  };
+
   return (
     <div
       style={{
         backgroundColor: '#121212',
         minHeight: '100vh',
         color: '#fff',
-        fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif'",
+        fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
       }}
     >
-      {/* 🔙 Botão de Voltar com o mesmo estilo limpo */}
       <div style={{ padding: '24px 32px 0 32px' }}>
         <button
           onClick={() => navigate('/')}
@@ -205,7 +209,6 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
         </button>
       </div>
 
-      {/* 🏞️ Seção Hero (Igual do DetalheMusica, combinando o design) */}
       <section
         style={{
           display: 'flex',
@@ -245,21 +248,18 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
         </div>
       </section>
 
-      {/* Seção das Ações e Listagem */}
       <section style={{ padding: '40px 32px', display: 'flex', flexDirection: 'column', gap: '40px', background: 'linear-gradient(rgba(0,0,0,0.6) 0%, #121212 100%)' }}>
 
-        {/* 🟢 Barra de Ações: Play e Curtir Lado a Lado como em DetalheMusica */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
           <button
             onClick={tocarAlbumCompleto}
             style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: '#1ed760', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.5rem', transition: 'transform 0.2s' }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.05)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
           >
             ▶
           </button>
 
-          {/* 🟢 Botão de Curtir Álbum adicionado cirurgicamente */}
           <button
             onClick={handleCurtirAlbum}
             style={{
@@ -277,12 +277,11 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
           </button>
         </div>
 
-        {/* 📊 Tabela de Músicas */}
         <div style={{ display: 'flex', flexDirection: 'column', maxWidth: '800px' }}>
           <div style={{ display: 'flex', borderBottom: '1px solid #282828', padding: '8px 16px', color: '#b3b3b3', fontSize: '0.85rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             <div style={{ width: '5%' }}>#</div>
             <div style={{ width: '60%' }}>Título</div>
-            <div style={{ width: '35%', textAlign: 'right' }}>Ação</div>
+            <div style={{ width: '35%', textAlign: 'right' }}>ACTION</div>
           </div>
 
           {!album.musicas || album.musicas.length === 0 ? (
@@ -291,15 +290,22 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
             album.musicas.map((musica, index) => (
               <div
                 key={musica._id}
-                onClick={() => setMusicaAtual({
-                  nome: musica.nome,
-                  artista: musica.artista || album.artista,
-                  audioUrl: musica.audioUrl,
-                  capaUrl: album.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&q=80"
-                })}
+                onClick={() => {
+                  setMusicaAtual({
+                    nome: musica.nome,
+                    artista: musica.artista || album.artista,
+                    audioUrl: musica.audioUrl,
+                    capaUrl: album.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&q=80"
+                  }, album.musicas?.map(m => ({
+                    nome: m.nome,
+                    artista: m.artista || album.artista,
+                    audioUrl: m.audioUrl,
+                    capaUrl: album.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&q=80"
+                  })));
+                }}
                 style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', borderRadius: '4px', cursor: 'pointer', transition: 'background-color 0.2s' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2a2a2a'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#2a2a2a'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
               >
                 <div style={{ width: '5%', color: '#b3b3b3', fontSize: '0.9rem' }}>{index + 1}</div>
                 <div style={{ width: '60%' }}>
@@ -314,7 +320,6 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
           )}
         </div>
 
-        {/* 💬 SEÇÃO DE AVALIAÇÕES E COMENTÁRIOS UNIFICADA */}
         <div style={{ backgroundColor: '#181818', padding: '24px', borderRadius: '8px', maxWidth: '700px', marginTop: '16px' }}>
           <h3 style={{ fontSize: '1.2rem', marginBottom: '20px', fontWeight: 'bold' }}>Críticas e Avaliações</h3>
 
@@ -351,7 +356,6 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
             </div>
           )}
 
-          {/* Listagem de Avaliações */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '350px', overflowY: 'auto' }}>
             {!album.reviews || album.reviews.length === 0 ? (
               <p style={{ color: '#b3b3b3', fontSize: '0.9rem', fontStyle: 'italic' }}>Nenhuma avaliação foi deixada por aqui ainda. Seja o primeiro!</p>
@@ -360,7 +364,7 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
                 <div key={rev._id} style={{ backgroundColor: '#232323', padding: '14px', borderRadius: '4px', fontSize: '0.9rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', alignItems: 'center' }}>
                     <strong style={{ color: '#1ed760', fontSize: '0.85rem' }}>
-                      {rev.usuarioNome || (rev.userId as any).nome || "Usuário Premium"}
+                      {extrairNomeUsuario(rev)}
                     </strong>
                     <span style={{ color: '#1ed760', fontSize: '0.8rem' }}>{'⭐'.repeat(rev.nota)}</span>
                   </div>

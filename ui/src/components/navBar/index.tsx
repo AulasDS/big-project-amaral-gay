@@ -19,19 +19,14 @@ export default function Navbar() {
 
   return (
     <nav style={{
-      width: '240px',
+      width: '100%',             /* 🟢 Mantido 100% para respeitar o grid pai */
       backgroundColor: '#000000',
-      height: '100vh',
-      padding: '24px 16px',
+      height: '100%',            /* 🟢 Mantido 100% para não vazar sobre o player */
       display: 'flex',
       flexDirection: 'column',
       gap: '24px',
-      position: 'fixed',
-      left: 0,
-      top: 0,
       boxSizing: 'border-box',
       fontFamily: "'Segoe UI', Roboto, sans-serif",
-      borderRight: '1px solid #1c1c1c'
     }}>
       
       <div 
@@ -90,10 +85,6 @@ export default function Navbar() {
             </button>
           );
         })}
-      </div>
-
-      <div style={{ padding: '0 16px', color: '#727272', fontSize: '0.75rem' }}>
-        <p style={{ margin: 0 }}>© 2026 Spotify Project</p>
       </div>
     </nav>
   );
