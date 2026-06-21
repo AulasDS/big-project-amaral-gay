@@ -21,7 +21,22 @@ const BibliotecaSchema = new mongoose.Schema({
 });
 
 // 🟢 Seus índices únicos estão excelentes! Eles continuam funcionando perfeitamente.
-BibliotecaSchema.index({ userId: 1, musicaId: 1 }, { unique: true, sparse: true });
-BibliotecaSchema.index({ userId: 1, albumId: 1 }, { unique: true, sparse: true });
+
+BibliotecaSchema.index(
+    { userId: 1, musicaId: 1 },
+    { 
+        unique: true, 
+        partialFilterExpression: { musicaId: { $exists: true } } 
+    }
+);
+
+// Só aplica a regra de "não duplicar" se o albumId existir de fato (ignora null)
+BibliotecaSchema.index(
+    { userId: 1, albumId: 1 },
+    { 
+        unique: true, 
+        partialFilterExpression: { albumId: { $exists: true } } 
+    }
+);
 
 module.exports = mongoose.model('Biblioteca', BibliotecaSchema);
