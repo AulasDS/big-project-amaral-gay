@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom'; // 🟢 Adicionado useLocation
 import axios from 'axios';
 
 interface Musica {
@@ -12,7 +12,7 @@ interface Musica {
   feat?: string;
   audioUrl: string;
   albumId?: string;
-  capaUrl?: string; // Garantindo compatibilidade com o card lateral do App.tsx
+  capaUrl?: string; 
 }
 
 interface Comentario {
@@ -22,7 +22,6 @@ interface Comentario {
   data: string;
 }
 
-// 🟢 Adicionada a tipagem para receber a função do App.tsx
 interface DetalheMusicaProps {
   setMusicaAtual: (musica: any, listaDeMusicas?: any[]) => void;
 }
@@ -30,6 +29,8 @@ interface DetalheMusicaProps {
 export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation(); // 🟢 Instanciado para rastrear a origem da navegação
+  
   const [musica, setMusica] = useState<Musica | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   
@@ -40,14 +41,20 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
   const [isHoveredPlay, setIsHoveredPlay] = useState(false);
 
+  // captura de forma dinâmica se o usuário veio da biblioteca ou de outro lugar
+  const rotaOrigem = location.state?.deOndeVeio || '/';
+
   useEffect(() => {
     axios
       .get(`http://localhost:5000/musica/${id}`)
       .then((res) => {
         setMusica(res.data);
         setComentarios([
-          { usuario: 'Luiz', nota: 5, texto: 'Uma das melhores do ano, produção impecável!', data: '17/06/2026' },
-          { usuario: 'Anônimo', nota: 4, texto: 'Muito boa essa faixa, o ritmo é contagiante.', data: '17/06/2026' }
+          { usuario: 'bigode', nota: 5, texto: 'tico', data: '17/06/2026' },
+          { usuario: 'max', nota: 4, texto: 'Muito boa essa faixa, o ritmo é contagiante.', data: '17/06/2026' },
+          { usuario: 'amaral', nota: 4, texto: 'Muito boa essa faixa, o ritmo é contagiante.', data: '17/06/2026' },
+          { usuario: 'japa', nota: 4, texto: 'Muito boa essa faixa, o ritmo é contagiante.', data: '17/06/2026' },
+          { usuario: 'bola8', nota: 4, texto: 'Muito boa essa faixa, o ritmo é contagiante.', data: '17/06/2026' },
         ]);
       })
       .catch((err) => {
@@ -67,11 +74,10 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
     }
   }, [id, userId]);
 
-  // 🟢 AGORA ATIVANDO O PLAYER PRINCIPAL: Dispara a música para o rodapé do App.tsx
+  // dispara a música para o rodapé do App.tsx
   const handlePlayMusica = () => {
     if (!musica) return;
     
-    // Fornece o objeto estruturado com capaUrl (ou fallback) para alimentar o App.tsx perfeitamente
     setMusicaAtual({
       ...musica,
       capaUrl: musica.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&q=80"
@@ -85,6 +91,7 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
     }
 
     if (!curtido) {
+      // curtir Música (
       axios.post('http://localhost:5000/biblioteca', { userId, musicaId: id })
         .then(() => {
           setCurtido(true);
@@ -94,7 +101,15 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
           alert("Não foi possível adicionar à biblioteca.");
         });
     } else {
-      setCurtido(false);
+      // Descurtir Música 
+      axios.delete(`http://localhost:5000/biblioteca/${userId}/${id}`)
+        .then(() => {
+          setCurtido(false);
+        })
+        .catch(err => {
+          console.error("Erro ao remover música da biblioteca:", err);
+          alert("Erro ao remover do banco de dados. A música continuará salva.");
+        });
     }
   };
 
@@ -118,8 +133,8 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
     return (
       <div style={{ backgroundColor: '#121212', minHeight: '100vh', color: '#fff', padding: '32px', fontFamily: 'sans-serif' }}>
         <p style={{ color: '#ff4444' }}>{erro}</p>
-        <button onClick={() => navigate('/')} style={{ backgroundColor: '#232323', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '500px', cursor: 'pointer', fontWeight: 'bold' }}>
-          Voltar para a Home
+        <button onClick={() => navigate(rotaOrigem)} style={{ backgroundColor: '#232323', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '500px', cursor: 'pointer', fontWeight: 'bold' }}>
+          Voltar
         </button>
       </div>
     );
@@ -139,13 +154,13 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
         backgroundColor: '#121212',
         minHeight: '100vh',
         color: '#fff',
-        fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif'",
+        fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
       }}
     >
       {/* Botão de Voltar */}
       <div style={{ padding: '24px 32px 0 32px' }}>
         <button 
-          onClick={() => navigate('/')}
+          onClick={() => navigate(rotaOrigem)} 
           style={{
             backgroundColor: 'rgba(0, 0, 0, 0.7)',
             color: '#fff',
@@ -200,13 +215,10 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
         </div>
       </section>
 
-      {/* Seção do Player e Interações */}
       <section style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: '40px', background: 'linear-gradient(rgba(0,0,0,0.6) 0%, #121212 100%)' }}>
         
-        {/* Área de Ação: Botão Verde Grande Limpo e Ícones Auxiliares */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
           
-          {/* Botão de Play Verde Grande Circular */}
           <button
             onClick={handlePlayMusica}
             onMouseEnter={() => setIsHoveredPlay(true)}
@@ -231,7 +243,6 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
             </svg>
           </button>
 
-          {/* Botão Curtir Minimalista */}
           <button 
             onClick={handleCurtirMusica}
             style={{
@@ -251,7 +262,6 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
           </button>
         </div>
 
-        {/* Bloco Único: Comentários Públicos com Estrelas */}
         <div style={{ backgroundColor: '#181818', padding: '24px', borderRadius: '8px', maxWidth: '700px' }}>
           <h3 style={{ fontSize: '1.2rem', marginBottom: '20px' }}>Comentários Públicos</h3>
           
@@ -286,7 +296,6 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
             </div>
           </form>
 
-          {/* Listagem de Comentários */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '350px', overflowY: 'auto' }}>
             {comentarios.map((c, index) => (
               <div key={index} style={{ backgroundColor: '#232323', padding: '14px', borderRadius: '4px', fontSize: '0.9rem' }}>

@@ -9,18 +9,18 @@ const BibliotecaSchema = new mongoose.Schema({
     musicaId: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'Musica', 
-        required: false // 🟢 Alterado para false para permitir salvar apenas álbuns
+        required: false // alterado para false para permitir salvar apenas álbuns
     },
     albumId: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'Album', 
-        required: false // 🟢 Alterado para false para permitir salvar apenas músicas
+        required: false // alterado para false para permitir salvar apenas músicas
     }
 }, {
     timestamps: true
 });
 
-// 🟢 Seus índices únicos estão excelentes! Eles continuam funcionando perfeitamente.
+
 
 BibliotecaSchema.index(
     { userId: 1, musicaId: 1 },

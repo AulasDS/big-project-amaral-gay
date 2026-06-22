@@ -24,9 +24,9 @@ const albumController = {
             
             return res.status(500).json({ message: 'Erro interno', error: error.message });
         }
-    }, // 👈 AQUI! Adicionei a vírgula que faltava para separar as funções do objeto
+    },
 
-    // 2. GET '/' ou '/album?genero=Rock' (Regra 1)
+
     getAll: async (req, res) => {
         try {
             const { genero } = req.query;
@@ -44,7 +44,6 @@ const albumController = {
         }
     },
 
-    // 3. Buscar Álbum por ID (Regra 2)
     getById: async (req, res) => {
         try {
             const { id } = req.params;
@@ -58,7 +57,6 @@ const albumController = {
         }
     },
 
-    // 4. Atualizar Álbum
     update: async (req, res) => {
         try {
             const { id } = req.params;
@@ -70,7 +68,6 @@ const albumController = {
         }
     },
 
-    // 5. Deletar Álbum
     delete: async (req, res) => {
         try {
             const { id } = req.params;

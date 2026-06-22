@@ -9,16 +9,16 @@ const UsuarioSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
-        unique: true, // 🔒 Essencial: não deixa dois perfis usarem o mesmo e-mail
+        unique: true, 
         trim: true,
         lowercase: true
     },
-    tipo: { // 💡 Mudamos os enums para minúsculo para casar com o React!
+    tipo: { 
         type: String,
-        enum: ['ouvinte', 'artista'], // 👈 🟢 Alterado para minúsculo!
-        default: 'ouvinte'           // 👈 🟢 Alterado para minúsculo!
+        enum: ['ouvinte', 'artista'], 
+        default: 'ouvinte'          
     },
-    nascimento: { // Mantivemos o campo caso você queira usar no futuro
+    nascimento: { 
         type: Date
     },
     criadoEm: {

@@ -5,7 +5,6 @@ const AlbumSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true
-        // 🟢 Removido qualquer risco de índice único oculto no nome
     },
     artista: {
         type: String,
@@ -15,7 +14,7 @@ const AlbumSchema = new mongoose.Schema({
     capaUrl: {
         type: String,
         default: 'https://via.placeholder.com/300',
-        index: false // 🟢 Garante que o MongoDB não tente criar um índice único para a capa padrão
+        index: false 
     },
     ano: {
         type: Number,
@@ -23,10 +22,10 @@ const AlbumSchema = new mongoose.Schema({
     },
     musicas: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Musica' // Referência ao modelo de Música
+        ref: 'Musica' 
     }]
 }, {
-    timestamps: true // Cria automaticamente os campos createdAt e updatedAt
+    timestamps: true 
 });
 
 module.exports = mongoose.model('Album', AlbumSchema);

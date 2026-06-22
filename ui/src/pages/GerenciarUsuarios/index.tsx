@@ -15,7 +15,6 @@ export default function GerenciarUsuarios() {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  // 1. BUSCAR USUÁRIOS DO BACKEND (GET)
   const carregarUsuarios = () => {
     setLoading(true);
     axios.get('http://localhost:5000/usuario')
@@ -33,27 +32,22 @@ export default function GerenciarUsuarios() {
     carregarUsuarios();
   }, []);
 
-  // 2. SELECIONAR PERFIL (Regra 3 - Define o usuário ativo no App)
   const handleSelecionarPerfil = (usuario: Usuario) => {
     localStorage.setItem('userId', usuario._id);
     localStorage.setItem('userName', usuario.nome);
-    alert(`Perfil alterado para: ${usuario.nome}`);
+    localStorage.setItem('userTipo', (usuario.tipo || 'ouvinte').toLowerCase());
     
-    // Força a página a recarregar ou joga para a Home com o login atualizado
     window.location.href = '/'; 
   };
 
-  // 3. EXCLUIR PERFIL (DELETE)
   const handleExcluirUsuario = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation(); // Evita que clique no botão acione a seleção do perfil
+    e.stopPropagation(); // evita disparar a selecao do perfil ao deletar
     
     if (window.confirm("Tem certeza que deseja deletar este perfil de usuário?")) {
       axios.delete(`http://localhost:5000/usuario/${id}`)
         .then(() => {
-          alert("Perfil deletado com sucesso!");
-          carregarUsuarios(); // Atualiza a lista na tela
+          carregarUsuarios(); // atualiza a lista na tela
 
-          // Se o usuário deletado for o que estava logado, limpa o login
           if (localStorage.getItem('userId') === id) {
             localStorage.clear();
           }
@@ -68,20 +62,21 @@ export default function GerenciarUsuarios() {
   return (
     <div style={{
       backgroundColor: '#121212',
-      minHeight: '80vh',
+      minHeight: '100vh',
       color: '#fff',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: 'flex-start', // alterado de center para flex-start para subir o conteudo
       fontFamily: "'Segoe UI', Roboto, sans-serif",
-      padding: '20px'
+      padding: '80px 20px 40px 20px', // adicionado mais espaco apenas no topo para alinhar mais acima
+      boxSizing: 'border-box'
     }}>
       
-      <h1 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '8px', letterSpacing: '-0.04em' }}>
+      <h1 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '8px', letterSpacing: '-0.02em' }}>
         Quem está ouvindo?
       </h1>
-      <p style={{ color: '#b3b3b3', marginBottom: '40px', fontSize: '1rem' }}>
+      <p style={{ color: '#a7a7a7', marginBottom: '40px', fontSize: '0.9rem' }}>
         Selecione um perfil para navegar ou gerencie as suas contas abaixo.
       </p>
 
@@ -89,26 +84,26 @@ export default function GerenciarUsuarios() {
         <p style={{ color: '#1ed760', fontWeight: 'bold' }}>Carregando perfis...</p>
       ) : usuarios.length === 0 ? (
         <div style={{ textAlign: 'center' }}>
-          <p style={{ color: '#b3b3b3', marginBottom: '20px' }}>Nenhum perfil cadastrado.</p>
+          <p style={{ color: '#a7a7a7', marginBottom: '20px' }}>Nenhum perfil cadastrado.</p>
           <button 
             onClick={() => navigate('/inserir-usuario')}
-            style={{ backgroundColor: '#fff', color: '#000', border: 'none', padding: '12px 24px', borderRadius: '500px', fontWeight: 'bold', cursor: 'pointer' }}
+            style={{ backgroundColor: '#1ed760', color: '#000', border: 'none', padding: '14px 32px', borderRadius: '500px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.9rem' }}
           >
             Criar Primeiro Perfil
           </button>
         </div>
       ) : (
-        /* Grid de Perfis Estilo Netflix/Spotify */
+        /* grid de cards verticais baseado na imagem do spotify */
         <div style={{
           display: 'flex',
-          gap: '32px',
+          gap: '24px',
           flexWrap: 'wrap',
-          justifyContent: 'center',
-          maxWidth: '800px'
+          width: '100%',
+          maxWidth: '900px',
+          justifyContent: 'center'
         }}>
           {usuarios.map((user) => {
             const isHovered = hoveredId === user._id;
-            // Pega a primeira letra do nome para o avatar personalizado
             const inicial = user.nome ? user.nome.charAt(0).toUpperCase() : '?';
 
             return (
@@ -118,134 +113,121 @@ export default function GerenciarUsuarios() {
                 onMouseEnter={() => setHoveredId(user._id)}
                 onMouseLeave={() => setHoveredId(null)}
                 style={{
+                  backgroundColor: isHovered ? '#282828' : '#181818',
+                  borderRadius: '8px',
+                  padding: '20px',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
+                  width: '180px',
+                  height: '260px',
                   cursor: 'pointer',
-                  width: '140px',
                   position: 'relative',
-                  textAlign: 'center'
+                  transition: 'background-color 0.3s ease',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
                 }}
               >
-                {/* Avatar Circular */}
+                {/* botao de excluir discreto no canto superior direito do card */}
+                <button
+                  onClick={(e) => handleExcluirUsuario(e, user._id)}
+                  title="Excluir Perfil"
+                  style={{
+                    position: 'absolute',
+                    top: '12px',
+                    right: '12px',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    color: isHovered ? '#a7a7a7' : 'transparent', // so aparece visivel no hover do card
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    transition: 'color 0.2s ease',
+                    zIndex: 10
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#e91429'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#a7a7a7'}
+                >
+                  ✕
+                </button>
+
+                {/* avatar circular centralizado com efeito radial discreto ao fundo */}
                 <div style={{
-                  width: '120px',
-                  height: '120px',
+                  width: '110px',
+                  height: '110px',
                   borderRadius: '50%',
-                  backgroundColor: isHovered ? '#282828' : '#181818',
-                  border: isHovered ? '3px solid #1ed760' : '3px solid transparent',
+                  backgroundColor: '#282828',
+                  backgroundImage: isHovered 
+                    ? 'radial-gradient(circle, #3e3e3e 0%, #282828 70%)' 
+                    : 'radial-gradient(circle, #202020 0%, #181818 70%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '3rem',
+                  fontSize: '2.5rem',
                   fontWeight: 'bold',
                   color: isHovered ? '#1ed760' : '#fff',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-                  transition: 'all 0.2s ease',
-                  marginBottom: '16px',
-                  position: 'relative'
+                  transition: 'all 0.3s ease',
+                  marginTop: '20px',
+                  boxShadow: '0 8px 16px rgba(0,0,0,0.4)'
                 }}>
                   {inicial}
+                </div>
 
-                  {/* Badge de Tipo (Artista / Ouvinte) */}
+                {/* container de textos alinhado embaixo e a esquerda */}
+                <div style={{
+                  marginTop: 'auto',
+                  width: '100%',
+                  textAlign: 'left',
+                  overflow: 'hidden'
+                }}>
+                  <h3 style={{
+                    margin: '0 0 4px 0',
+                    fontSize: '1rem',
+                    fontWeight: '700',
+                    color: '#fff',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}>
+                    {user.nome}
+                  </h3>
+                  
                   <span style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    right: 0,
-                    backgroundColor: user.tipo === 'artista' ? '#1db954' : '#333',
-                    color: user.tipo === 'artista' ? '#000' : '#fff',
-                    fontSize: '0.65rem',
-                    padding: '3px 8px',
-                    borderRadius: '10px',
-                    fontWeight: 'bold',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.4)'
+                    color: '#b3b3b3',
+                    fontSize: '0.75rem',
+                    fontWeight: '500',
+                    textTransform: 'capitalize'
                   }}>
                     {user.tipo}
                   </span>
                 </div>
 
-                {/* Nome do Usuário */}
-                <h3 style={{
-                  margin: '0 0 4px 0',
-                  fontSize: '1.05rem',
-                  fontWeight: '700',
-                  color: isHovered ? '#1ed760' : '#fff',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  width: '100%'
-                }}>
-                  {user.nome}
-                </h3>
-
-                {/* E-mail Secundário */}
-                <p style={{
-                  margin: '0 0 12px 0',
-                  fontSize: '0.75rem',
-                  color: '#b3b3b3',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  width: '100%'
-                }}>
-                  {user.email}
-                </p>
-
-                {/* Botão de Deletar Discreto */}
-                <button
-                  onClick={(e) => handleExcluirUsuario(e, user._id)}
-                  style={{
-                    backgroundColor: 'transparent',
-                    border: '1px solid #555',
-                    color: '#b3b3b3',
-                    padding: '4px 10px',
-                    borderRadius: '4px',
-                    fontSize: '0.7rem',
-                    cursor: 'pointer',
-                    opacity: isHovered ? 1 : 0.4, // Só acende bem quando o mouse está no card
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = '#e91429';
-                    e.currentTarget.style.color = '#e91429';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = '#555';
-                    e.currentTarget.style.color = '#b3b3b3';
-                  }}
-                >
-                  Excluir Perfil
-                </button>
               </div>
             );
           })}
         </div>
       )}
 
-      {/* Botão Inferior de Atalho para Adicionar Novo Perfil */}
+      {/* botao de atalho inferior para adicionar perfil */}
       {!loading && usuarios.length > 0 && (
         <button
           onClick={() => navigate('/inserir-usuario')}
           style={{
-            marginTop: '48px',
+            marginTop: '50px',
             backgroundColor: 'transparent',
-            color: '#b3b3b3',
-            border: '1px solid #b3b3b3',
-            padding: '10px 24px',
+            color: '#fff',
+            border: '1px solid #727272',
+            padding: '12px 32px',
             borderRadius: '500px',
             fontWeight: 'bold',
-            fontSize: '0.85rem',
+            fontSize: '0.9rem',
             cursor: 'pointer',
             transition: 'all 0.2s'
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.borderColor = '#fff';
-            e.currentTarget.style.color = '#fff';
-            e.currentTarget.style.transform = 'scale(1.04)';
+            e.currentTarget.style.transform = 'scale(1.02)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = '#b3b3b3';
-            e.currentTarget.style.color = '#b3b3b3';
+            e.currentTarget.style.borderColor = '#727272';
             e.currentTarget.style.transform = 'scale(1)';
           }}
         >

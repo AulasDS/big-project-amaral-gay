@@ -4,7 +4,7 @@ import axios from 'axios';
 
 export default function Biblioteca() {
   const [curtidas, setCurtidas] = useState<any[]>([]);
-  // 🟢 Controla qual aba está ativa: 'musicas' ou 'albuns'
+  // controla qual aba está ativa: 'musicas' ou 'albuns'
   const [abaAtiva, setAbaAtiva] = useState<'musicas' | 'albuns'>('musicas');
   const navigate = useNavigate();
   const userId = localStorage.getItem('userId');
@@ -35,11 +35,10 @@ export default function Biblioteca() {
     );
   }
 
-  // 🟢 Filtra os dados separando o que é música do que é álbum
   const musicasCurtidas = curtidas.filter(item => item.musicaId);
   const albunsCurtidos = curtidas.filter(item => item.albumId);
 
-  // 🟢 Define qual lista exibir no grid com base na aba clicada
+  // define qual lista exibir no grid com base na aba clicada
   const itensExibidos = abaAtiva === 'musicas' ? musicasCurtidas : albunsCurtidos;
 
   return (
@@ -49,7 +48,7 @@ export default function Biblioteca() {
         Coleção exclusiva de <span style={{ color: '#1ed760', fontWeight: 'bold' }}>{userName}</span>
       </p>
 
-      {/* 🟢 Abas Estilo Spotify para alternar entre Músicas e Álbuns */}
+      {/*  Abas Estilo Spotify para alternar entre Músicas e Álbuns */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '32px' }}>
         <button
           onClick={() => setAbaAtiva('musicas')}
@@ -102,7 +101,7 @@ export default function Biblioteca() {
           }}
         >
           {itensExibidos.map(item => {
-            // 🟢 Mapeia dinamicamente se o objeto alvo é a música ou o álbum atual
+            //  mapeia dinamicamente se o objeto alvo é a música ou o álbum atual
             const dadoObjeto = abaAtiva === 'musicas' ? item.musicaId : item.albumId;
             if (!dadoObjeto) return null; 
             
@@ -115,7 +114,7 @@ export default function Biblioteca() {
               <div 
                 key={item._id} 
                 className="music-card" 
-                onClick={() => navigate(rotaRedirecionamento)} 
+                onClick={() => navigate(rotaRedirecionamento, { state: { deOndeVeio: '/biblioteca' } })} 
                 style={{ 
                   cursor: 'pointer',
                   backgroundColor: '#181818',
@@ -139,7 +138,6 @@ export default function Biblioteca() {
                   />
                 </div>
                 
-                {/* Textos Informativos */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 'bold', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#fff' }}>
                     {dadoObjeto.nome || dadoObjeto.titulo}

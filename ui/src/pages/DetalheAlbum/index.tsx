@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom'; // 🟢 Adicionado useLocation
 import axios from 'axios';
 
 // Interfaces para validação do TypeScript
@@ -38,6 +38,7 @@ interface DetalheAlbumProps {
 export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation(); // 🟢 Instanciado para rastrear a origem da navegação
 
   const [album, setAlbum] = useState<Album | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,6 +48,9 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
 
   const userId = localStorage.getItem('userId');
   const userName = localStorage.getItem('userName');
+
+  // captura de forma dinâmica se o usuário veio da biblioteca ou de outro lugar
+  const rotaOrigem = location.state?.deOndeVeio || '/';
 
   useEffect(() => {
     axios.get(`http://localhost:5000/album/${id}`)
@@ -80,8 +84,7 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
     if (!curtido) {
       const dadosEnvio = {
         userId,
-        albumId: id,
-        musicaId: "000000000000000000000000"
+        albumId: id
       };
 
       axios.post('http://localhost:5000/biblioteca', dadosEnvio)
@@ -99,7 +102,7 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
         })
         .catch(err => {
           console.error("Erro ao remover álbum da biblioteca:", err);
-          setCurtido(false); 
+          alert("Erro ao remover do banco de dados. O item continuará salvo.");
         });
     }
   };
@@ -111,12 +114,12 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
         nome: primeiraFaixa.nome,
         artista: primeiraFaixa.artista || album.artista,
         audioUrl: primeiraFaixa.audioUrl,
-        capaUrl: album.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&q=80"
+        capaUrl: album.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=400"
       }, album.musicas.map(m => ({
         nome: m.nome,
         artista: m.artista || album.artista,
         audioUrl: m.audioUrl,
-        capaUrl: album.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&q=80"
+        capaUrl: album.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=400"
       })));
     } else {
       alert("Este álbum ainda não possui músicas cadastradas!");
@@ -142,13 +145,12 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
 
     axios.post('http://localhost:5000/review', novaReview)
       .then(res => {
-        alert("Crítica enviada com sucesso!");
         setComentario('');
         setNota(5);
 
         if (album) {
           const reviewComNome = {
-            ...res.data,
+            ...res.data.data, // Garante pegar a propriedade correta do retorno do backend
             usuarioNome: userName
           };
           const reviewsAtualizadas = album.reviews ? [...album.reviews, reviewComNome] : [reviewComNome];
@@ -156,6 +158,20 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
         }
       })
       .catch(err => alert("Erro ao enviar comentário: " + (err.response?.data?.message || err.message)));
+  };
+
+  const handleDeletarReview = (reviewId: string) => {
+    if (window.confirm("Tem certeza que deseja apagar sua crítica?")) {
+      axios.delete(`http://localhost:5000/review/${reviewId}/${userId}`)
+        .then(() => {
+          alert("Crítica removida!");
+          if (album && album.reviews) {
+            const filtradas = album.reviews.filter(r => r._id !== reviewId);
+            setAlbum({ ...album, reviews: filtradas });
+          }
+        })
+        .catch(err => alert("Erro ao deletar: " + (err.response?.data?.message || err.message)));
+    }
   };
 
   if (loading) {
@@ -193,7 +209,7 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
     >
       <div style={{ padding: '24px 32px 0 32px' }}>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate(rotaOrigem)} // 🟢 ARRUMADO: Retorna para a origem dinâmica correta
           style={{
             backgroundColor: 'rgba(0, 0, 0, 0.7)',
             color: '#fff',
@@ -360,20 +376,38 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
             {!album.reviews || album.reviews.length === 0 ? (
               <p style={{ color: '#b3b3b3', fontSize: '0.9rem', fontStyle: 'italic' }}>Nenhuma avaliação foi deixada por aqui ainda. Seja o primeiro!</p>
             ) : (
-              album.reviews.map((rev) => (
-                <div key={rev._id} style={{ backgroundColor: '#232323', padding: '14px', borderRadius: '4px', fontSize: '0.9rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', alignItems: 'center' }}>
-                    <strong style={{ color: '#1ed760', fontSize: '0.85rem' }}>
-                      {extrairNomeUsuario(rev)}
-                    </strong>
-                    <span style={{ color: '#1ed760', fontSize: '0.8rem' }}>{'⭐'.repeat(rev.nota)}</span>
+              album.reviews.map((rev) => {
+                // identifica dinamicamente se a review pertence ao usuário logado
+                const donoDaReview = typeof rev.userId === 'object' ? rev.userId?._id : rev.userId;
+                const ehDono = donoDaReview === userId;
+
+                return (
+                  <div key={rev._id} style={{ backgroundColor: '#232323', padding: '14px', borderRadius: '4px', fontSize: '0.9rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', alignItems: 'center' }}>
+                      <strong style={{ color: '#1ed760', fontSize: '0.85rem' }}>
+                        {extrairNomeUsuario(rev)}
+                      </strong>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ color: '#1ed760', fontSize: '0.8rem' }}>{'⭐'.repeat(rev.nota)}</span>
+                        
+                        {ehDono && (
+                          <button 
+                            onClick={() => handleDeletarReview(rev._id)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', padding: 0 }}
+                            title="Apagar meu comentário"
+                          >
+                            🗑️
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <p style={{ margin: '0 0 6px 0', color: '#e1e1e1', lineHeight: '1.4' }}>{rev.comentario}</p>
+                    <div style={{ color: '#727272', fontSize: '0.75rem', textTransform: 'lowercase' }}>
+                      {rev.createdAt ? new Date(rev.createdAt).toLocaleDateString('pt-BR') : 'agora mesmo'}
+                    </div>
                   </div>
-                  <p style={{ margin: '0 0 6px 0', color: '#e1e1e1', lineHeight: '1.4' }}>{rev.comentario}</p>
-                  <div style={{ color: '#727272', fontSize: '0.75rem', textTransform: 'lowercase' }}>
-                    {rev.createdAt ? new Date(rev.createdAt).toLocaleDateString('pt-BR') : 'agora mesmo'}
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

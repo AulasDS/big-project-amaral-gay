@@ -6,22 +6,19 @@ export default function Navbar() {
   const location = useLocation();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  // 🟢 FORÇADO: Todos os botões abertos para todo mundo, sem nenhuma condição!
   const itensMenu = [
-    { nome: 'Início', rota: '/', icone: '🏠' },
-    { nome: 'Biblioteca', rota: '/biblioteca', icone: '📚' },
-    { nome: 'Músicas', rota: '/musicas', icone: '🎵' },
-    { nome: 'Criar Música', rota: '/inserir-musica', icone: '✨' },
-    { nome: 'Criar Álbum', rota: '/inserir-album', icone: '➕' },
-    { nome: 'Criar Perfil', rota: '/inserir-usuario', icone: '👤' },
-    { nome: 'Gerenciar Perfis', rota: '/usuarios', icone: '⚙️' },
+    { nome: 'Início', rota: '/', icone: '' },
+    { nome: 'Biblioteca', rota: '/biblioteca', icone: '' },
+    { nome: 'Músicas', rota: '/musicas', icone: '' },
+    { nome: 'Criar Música', rota: '/inserir-musica', icone: '' },
+    { nome: 'Criar Álbum', rota: '/inserir-album', icone: '' },
+    { nome: 'Gerenciar Usuários', rota: '/usuarios', icone: '' },
   ];
 
   return (
     <nav style={{
-      width: '100%',             /* 🟢 Mantido 100% para respeitar o grid pai */
       backgroundColor: '#000000',
-      height: '100%',            /* 🟢 Mantido 100% para não vazar sobre o player */
+      height: '100%',            
       display: 'flex',
       flexDirection: 'column',
       gap: '24px',
