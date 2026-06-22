@@ -6,9 +6,7 @@ module.exports = {
         try {
             let { nome, artista, genero, capaUrl, audioUrl, albumId } = req.body;
 
-            // 🟢 INTEGRAÇÃO INTELIGENTE DA CAPA:
-            // Se a música pertence a um álbum e não foi fornecida uma capaUrl específica para ela,
-            // herdamos automaticamente a capa cadastrada no álbum pai.
+            // Se a música pertence a um álbum e não foi fornecida uma capaUrl específica para ela, automaticamente a capa cadastrada no álbum pai
             if (!capaUrl && albumId) {
                 const albumPai = await Album.findById(albumId);
                 if (albumPai && albumPai.capaUrl) {
@@ -20,7 +18,7 @@ module.exports = {
                 nome,
                 artista,
                 genero,
-                capaUrl, // Salva o link recebido ou o herdado do álbum
+                capaUrl, 
                 audioUrl,
                 albumId
             });

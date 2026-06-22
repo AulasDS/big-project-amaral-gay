@@ -8,7 +8,7 @@ interface Musica {
   artista: string;
   genero: string;
   audioUrl: string;
-  capaUrl?: string; // 🟢 Certificado que a interface aceita capaUrl
+  capaUrl?: string; 
   albumId?: string;
 }
 
@@ -135,7 +135,7 @@ export default function Home() {
                 return (
                   <div
                     key={album._id}
-                    onClick={() => navigate(`/album/${album._id}`)}
+                    onClick={() => navigate(`/album/${album._id}`, { state: { deOndeVeio: '/' } })}
                     onMouseEnter={() => setHoveredId(album._id)}
                     onMouseLeave={() => setHoveredId(null)}
                     style={{

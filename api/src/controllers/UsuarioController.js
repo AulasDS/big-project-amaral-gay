@@ -5,16 +5,13 @@ class UsuarioController {
     // ➕ Criar um novo usuário/cliente
     static async create(req, res) {
         try {
-            // 🟢 MAPEADO: O front envia 'dataNascimento', pegamos ele aqui
             const { nome, email, tipo, dataNascimento, nascimento } = req.body;
 
             if (!nome || !email) {
                 return res.status(400).json({ message: "Dados inválidos. Nome e E-mail são obrigatórios." });
             }
 
-            // 🟢 TRATAMENTO DA DATA: Se o front mandou 'dataNascimento', convertemos para o campo 'nascimento' que o Model espera
             const dataFinal = dataNascimento ? new Date(dataNascimento) : (nascimento ? new Date(nascimento) : null);
-
             const clienteData = {
                 nome,
                 email,
@@ -36,18 +33,17 @@ class UsuarioController {
         }
     }
 
-    // 📋 Buscar Todos (Ajustado para o formato padrão esperado pelas telas)
+
     static async getAll(req, res) {
         try {
             const usuarios = await Usuario.find().sort({ criadoEm: -1 });
-            // Retornamos os usuários direto para bater com o "res.data" do seu React!
             return res.status(200).json(usuarios);
         } catch (error) {
             return res.status(500).json({ message: 'Erro ao encontrar usuários', error: error.message });
         }
     }
 
-    // 🔍 Buscar por ID
+    // uscar por ID
     static async getById(req, res) {
         try {
             const { id } = req.params;
@@ -62,7 +58,7 @@ class UsuarioController {
         }
     }
 
-    // ✏️ Atualizar Dados do Perfil
+    //  atualizar Dados do Perfil
     static async update(req, res) {
         try {
             const { id } = req.params;
@@ -86,7 +82,7 @@ class UsuarioController {
         }
     }
 
-    // ❌ Deletar Perfil (Essencial para a tela de gerenciamento)
+    // deletar Perfil 
     static async delete(req, res) {
         try {
             const { id } = req.params;

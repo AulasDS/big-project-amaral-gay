@@ -1,7 +1,7 @@
 const Playlist = require('../models/Playlist');
 
 module.exports = {
-    // POST '/' - Cria uma playlist vazia ou já com músicas
+    // cria uma playlist vazia ou já com músicas
     create: async (req, res) => {
         try {
             const { nome, descricao, musicas } = req.body;
@@ -9,7 +9,7 @@ module.exports = {
             const novaPlaylist = new Playlist({
                 nome,
                 descricao,
-                musicas // Pode mandar um array de IDs de músicas aqui ex: ["id1", "id2"]
+                musicas // array de IDs de músicas aqui ex: ["id1", "id2"]
             });
 
             await novaPlaylist.save();
@@ -19,7 +19,7 @@ module.exports = {
         }
     },
 
-    // GET '/' - Lista todas as playlists (trazendo os dados das músicas juntas)
+    // lista todas as playlists 
     getAll: async (req, res) => {
         try {
             const playlists = await Playlist.find().populate('musicas');
@@ -29,7 +29,7 @@ module.exports = {
         }
     },
 
-    // GET '/:id' - Busca uma playlist específica com todas as suas músicas
+    // busca uma playlist especifica com todas as suas musicas
     getById: async (req, res) => {
         try {
             const { id } = req.params;
@@ -45,7 +45,7 @@ module.exports = {
         }
     },
 
-    // PUT '/:id' - Atualiza o nome, descrição ou a lista de músicas
+    // atualiza o nome, descricao ou a lista de musicas
     update: async (req, res) => {
         try {
             const { id } = req.params;
@@ -67,7 +67,6 @@ module.exports = {
         }
     },
 
-    // DELETE '/:id' - Deleta a playlist
     delete: async (req, res) => {
         try {
             const { id } = req.params;

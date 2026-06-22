@@ -9,6 +9,5 @@ require('./startup/db')(); // Conectar banco
 require('./startup/router')(app); // Rodar o router
 
 
-// Iniciando o Serviço API
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`http://localhost:${PORT}/api-docs`));

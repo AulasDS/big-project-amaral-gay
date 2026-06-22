@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// 1. Primeiro definimos a estrutura e criamos o Modelo
 const MusicaSchema = new mongoose.Schema({
     nome: String,       
     artista: String,
@@ -16,5 +15,4 @@ const MusicaSchema = new mongoose.Schema({
 
 const Musica = mongoose.model('Musica', MusicaSchema);
 
-// 2. Só depois exportamos
 module.exports = Musica;

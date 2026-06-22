@@ -6,16 +6,13 @@ interface TelaAberturaProps {
 }
 
 export default function TelaAbertura({ onLoginSucesso }: TelaAberturaProps) {
-  // Controle de Abas: 'login' (Entrar) ou 'cadastro' (Inscrever-se)
   const [abaAtiva, setAbaAtiva] = useState<'login' | 'cadastro'>('login');
 
-  // Estados dos campos de entrada
   const [nomeLogin, setNomeLogin] = useState(''); // 🟢 Alterado de emailLogin para nomeLogin
   const [nome, setNome] = useState('');
   const [emailCadastro, setEmailCadastro] = useState('');
   const [dataNascimento, setDataNascimento] = useState('');
 
-  // Auxiliar para realizar o Fake Login e atualizar o app
   const salvarSessaoELogar = (user: any) => {
     const idGerado = user._id || user.id;
     const nomeGerado = user.nome;
@@ -28,7 +25,6 @@ export default function TelaAbertura({ onLoginSucesso }: TelaAberturaProps) {
     window.location.href = '/';
   };
 
-  // 1. ENTRAR EM PERFIL EXISTENTE VIA NOME DE USUÁRIO (Fake Login / GET)
   const handleLoginExistente = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -36,18 +32,17 @@ export default function TelaAbertura({ onLoginSucesso }: TelaAberturaProps) {
       .then(res => {
         const usuarios: any[] = res.data;
         
-        // 🟢 Procura EXATAMENTE pelo nome digitado (ignorando espaços vazios e maiúsculas/minúsculas)
         const usuarioEncontrado = usuarios.find(
           u => u.nome?.toLowerCase().trim() === nomeLogin.toLowerCase().trim()
         );
 
         if (usuarioEncontrado) {
-          alert(`Bem-vindo de volta, ${usuarioEncontrado.nome}!`);
+          
           salvarSessaoELogar(usuarioEncontrado);
         } else {
           alert("Nenhum perfil encontrado com este nome de usuário. Que tal se inscrever?");
           setAbaAtiva('cadastro');
-          setNome(nomeLogin); // Preenche o nome no cadastro automaticamente para facilitar
+          setNome(nomeLogin); 
         }
       })
       .catch(err => {
@@ -56,7 +51,6 @@ export default function TelaAbertura({ onLoginSucesso }: TelaAberturaProps) {
       });
   };
 
-  // 2. CRIAR UM NOVO PERFIL (POST)
   const handleCadastrarEEntrar = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -69,7 +63,6 @@ export default function TelaAbertura({ onLoginSucesso }: TelaAberturaProps) {
     axios.post('http://localhost:5000/usuario', novoUsuario)
       .then((res) => {
         alert(`Conta criada com sucesso! Bem-vindo, ${nome}.`);
-        // 🟢 Repassa o 'data' de dentro do seu controller
         salvarSessaoELogar(res.data.data);
       })
       .catch(err => {
