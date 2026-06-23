@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+// 1. Primeiro definimos a estrutura e criamos o Modelo
 const MusicaSchema = new mongoose.Schema({
     nome: String,       
     artista: String,
@@ -10,9 +11,17 @@ const MusicaSchema = new mongoose.Schema({
     },
     ano: Number,
     capaUrl: String,
-    audioUrl: String    
+    audioUrl: String,
+    // 🔴 ADICIONADO: Agora o Mongoose vai permitir salvar a letra gerada pela IA!
+    letraSincronizada: [
+        {
+            tempo: Number,
+            texto: String
+        }
+    ]
 });
 
 const Musica = mongoose.model('Musica', MusicaSchema);
 
+// 2. Só depois exportamos
 module.exports = Musica;
