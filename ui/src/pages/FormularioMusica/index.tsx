@@ -18,6 +18,10 @@ export default function FormularioMusica() {
   const [albuns, setAlbuns] = useState<Album[]>([]);
   const [gerarLetraAutomatico, setGerarLetraAutomatico] = useState(false);
   
+  // Estados para controle do Whisper via Backend
+  const [gerarLetraAutomatico, setGerarLetraAutomatico] = useState(false);
+  const [carregando, setCarregando] = useState(false);
+  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,6 +42,7 @@ export default function FormularioMusica() {
 
   const handleSalvar = (e: React.FormEvent) => {
     e.preventDefault();
+    setCarregando(true);
 
     const dadosDaMusica = {
       nome: titulo,
@@ -46,8 +51,7 @@ export default function FormularioMusica() {
       capaUrl,
       albumId: albumId === "" ? defaultAlbum : albumId, 
       audioUrl,
-      // 🟢 ADICIONADO: repassando flag para o backend processar com Whisper AI
-      gerarLetra: gerarLetraAutomatico
+      gerarLetraAutomatico // Informa ao backend se deve rodar a IA
     };
 
     axios.post('http://localhost:5000/musica', dadosDaMusica)
@@ -55,7 +59,8 @@ export default function FormularioMusica() {
         alert("Música salva com sucesso!");
         navigate('/'); 
       })
-      .catch(err => alert("Erro ao salvar: " + (err.response?.data?.message || err.message)));
+      .catch(err => alert("Erro ao salvar: " + (err.response?.data?.message || err.message)))
+      .finally(() => setCarregando(false));
   };
 
   return (

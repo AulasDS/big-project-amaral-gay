@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom'; // 🟢 Mantido useLocation
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
-// 🟢 Mantida a definição da estrutura LetraLinha corretiva
-interface LetraLinha {
-  tempo: number;
+// Interface para as linhas da letra sincronizada
+interface LinhaLetra {
+  tempo: number; // Tempo em segundos
   texto: string;
 }
 
@@ -19,7 +19,7 @@ interface Musica {
   audioUrl: string;
   albumId?: string;
   capaUrl?: string;
-  letraSincronizada?: LetraLinha[];
+  letraSincronizada?: LinhaLetra[]; // Campo para as letras automáticas vinda do banco
 }
 
 interface Comentario {
@@ -36,7 +36,7 @@ interface DetalheMusicaProps {
 export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const location = useLocation(); // 🟢 Mantido para rastrear a origem da navegação
+  const location = useLocation(); // Mantido para rastrear a origem da navegação
 
   const [musica, setMusica] = useState<Musica | null>(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -48,16 +48,14 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
   const [isHoveredPlay, setIsHoveredPlay] = useState(false);
 
-  // captura de forma dinâmica se o usuário veio da biblioteca ou de outro lugar
-  const rotaOrigem = location.state?.deOndeVeio || '/';
-
   useEffect(() => {
+    // 1. Busca os detalhes da música
     axios
       .get(`http://localhost:5000/musica/${id}`)
       .then((res) => {
-        let dadosMusica = res.data;
+        const dadosMusica = res.data;
 
-        // 🔍 Garante que se o banco trouxer algo que não seja um Array bizarro, nós tratamos
+        // 🟢 PARTE DA LETRA AUTOMÁTICA: Fallback de segurança caso não venha do Whisper/IA
         if (!dadosMusica.letraSincronizada || !Array.isArray(dadosMusica.letraSincronizada) || dadosMusica.letraSincronizada.length === 0) {
           dadosMusica.letraSincronizada = [
             { tempo: 0, texto: "🎵 (Intro Instrumental)" },
@@ -68,13 +66,9 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
 
         setMusica(dadosMusica);
 
-        // Seus comentários personalizados mantidos aqui:
         setComentarios([
-          { usuario: 'bigode', nota: 5, texto: 'tico', data: '17/06/2026' },
-          { usuario: 'max', nota: 4, texto: 'Muito boa essa faixa, o ritmo é contagiante.', data: '17/06/2026' },
-          { usuario: 'amaral', nota: 4, texto: 'Muito boa essa faixa, o ritmo é contagiante.', data: '17/06/2026' },
-          { usuario: 'japa', nota: 4, texto: 'Muito boa essa faixa, o ritmo é contagiante.', data: '17/06/2026' },
-          { usuario: 'bola8', nota: 4, texto: 'Muito boa essa faixa, o ritmo é contagiante.', data: '17/06/2026' },
+          { usuario: 'Luiz', nota: 5, texto: 'Uma das melhores do ano, produção impecável!', data: '17/06/2026' },
+          { usuario: 'Anônimo', nota: 4, texto: 'Muito boa essa faixa, o ritmo é contagiante.', data: '17/06/2026' }
         ]);
       })
       .catch((err) => {
@@ -82,11 +76,12 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
         setErro('Não foi possível carregar os detalhes desta música.');
       });
 
+    // 2. Verifica se o usuário logado já curtiu esta música para pintar o coração
     if (userId && id) {
       axios.get(`http://localhost:5000/biblioteca/${userId}`)
         .then((res) => {
           const jaCurtiu = res.data.some(
-            (item: any) => item.musicaId?._id === id || item.musicaId === id
+            (item: any) => (item.musicaId?._id === id || item.musicaId === id || item._id === id)
           );
           setCurtido(jaCurtiu);
         })
@@ -94,12 +89,11 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
     }
   }, [id, userId]);
 
-  // dispara a música para o rodapé do App.tsx
   const handlePlayMusica = () => {
     if (!musica) return;
 
     const faixaPronta = {
-      _id: musica._id, // 🟢 Garante o ID para o indexador do player
+      _id: musica._id,
       nome: musica.nome,
       artista: musica.artista,
       audioUrl: musica.audioUrl,
@@ -126,14 +120,15 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
           alert("Não foi possível adicionar à biblioteca.");
         });
     } else {
-      // Descurtir Música 
       axios.delete(`http://localhost:5000/biblioteca/${userId}/${id}`)
         .then(() => {
           setCurtido(false);
         })
         .catch(err => {
-          console.error("Erro ao remover música da biblioteca:", err);
-          alert("Erro ao remover do banco de dados. A música continuará salva.");
+          console.error("Erro ao remover dos favoritos:", err);
+          axios.post('http://localhost:5000/biblioteca/remover', { userId, musicaId: id })
+            .then(() => setCurtido(false))
+            .catch(() => alert("Erro ao sincronizar remoção da biblioteca. Verifique o console."));
         });
     }
   };
@@ -158,8 +153,8 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
     return (
       <div style={{ backgroundColor: '#121212', minHeight: '100vh', color: '#fff', padding: '32px', fontFamily: 'sans-serif' }}>
         <p style={{ color: '#ff4444' }}>{erro}</p>
-        <button onClick={() => navigate(rotaOrigem)} style={{ backgroundColor: '#232323', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '500px', cursor: 'pointer', fontWeight: 'bold' }}>
-          Voltar
+        <button onClick={() => navigate('/')} style={{ backgroundColor: '#232323', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '500px', cursor: 'pointer', fontWeight: 'bold' }}>
+          Voltar para a Home
         </button>
       </div>
     );
@@ -179,10 +174,9 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
         backgroundColor: '#121212',
         minHeight: '100vh',
         color: '#fff',
-        fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+        fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif'",
       }}
     >
-
       {/* Seção Hero */}
       <section
         style={{
@@ -224,7 +218,7 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
 
       {/* Seção do Player e Interações */}
       <section style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: '40px', background: 'linear-gradient(rgba(0,0,0,0.6) 0%, #121212 100%)' }}>
-
+        
         {/* Área de Ação */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
           <button
@@ -270,7 +264,7 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
           </button>
         </div>
 
-        {/* 🟢 MODIFICADO: Layout Lado a Lado (Letras na esquerda, Comentários na direita) */}
+        {/* Layout Lado a Lado (Letras na esquerda, Comentários na direita) */}
         <div style={{ display: 'flex', gap: '48px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
 
           {/* Coluna das Letras */}

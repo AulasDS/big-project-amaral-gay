@@ -7,7 +7,7 @@ const axios = require('axios');
 
 // 🔴 CONFIGURAÇÃO DA IA: Coloque sua chave da Groq aqui!
 const openai = new OpenAI({
-    apiKey: process.env.GROQ_API_KEY, 
+    apiKey: '', 
     baseURL: 'https://api.groq.com/openai/v1',
 });
 
@@ -19,7 +19,7 @@ module.exports = {
         try {
             let { nome, artista, genero, capaUrl, audioUrl, albumId, gerarLetraAutomatico } = req.body;
 
-            // Se a música pertence a um álbum e não foi fornecida uma capaUrl específica para ela, automaticamente a capa cadastrada no álbum pai
+            // 🟢 INTEGRAÇÃO INTELIGENTE DA CAPA:
             if (!capaUrl && albumId) {
                 const albumPai = await Album.findById(albumId);
                 if (albumPai && albumPai.capaUrl) {
@@ -61,7 +61,7 @@ module.exports = {
                 });
 
                 if (transcricao.segments) {
-                    let letraGerada = transcricao.segments.map((segmento) => ({
+                    letraGerada = transcricao.segments.map((segmento) => ({
                         tempo: Math.round(segmento.start), // O segundo em que a frase começa
                         texto: segmento.text.trim(),       // A frase falada/cantada
                     }));
@@ -74,14 +74,15 @@ module.exports = {
                 console.log(`✅ Transcrição concluída com sucesso!`);
             }
 
+            // Criando o objeto da música incluindo a letra gerada ou o array vazio []
             const novaMusica = new Musica({
                 nome,
                 artista,
                 genero,
-                capaUrl, 
+                capaUrl,
                 audioUrl,
                 albumId,
-                letraSincronizada: letraGerada
+                letraSincronizada: letraGerada 
             });
 
             await novaMusica.save();
@@ -98,6 +99,7 @@ module.exports = {
             if (tempFilePath && fs.existsSync(tempFilePath)) {
                 fs.unlinkSync(tempFilePath);
             }
+            console.error('Erro detalhado no Controller:', error);
             return res.status(500).json({ error: 'Erro ao criar a música', details: error.message });
         }
     },
@@ -105,13 +107,13 @@ module.exports = {
     getAll: async (req, res) => {
         try {
             const { genero } = req.query;
-            let filtro = {};
+            let filter = {};
 
             if (genero && genero !== 'Geral') {
-                filtro.genero = genero;
+                filter.genero = genero;
             }
 
-            const musicas = await Musica.find(filtro);
+            const musicas = await Musica.find(filter);
             return res.status(200).json(musicas);
         } catch (error) {
             return res.status(500).json({ error: 'Erro ao buscar as músicas', details: error.message });
