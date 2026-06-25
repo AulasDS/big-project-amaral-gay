@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-// 🟢 Adicionada a interface para receber a função de reprodução idêntica ao álbum
+// 1. 🟢 Atualizada a interface para receber também a lista de músicas (fila)
 interface GerenciarMusicasProps {
-  setMusicaAtual: (musica: any) => void;
+  setMusicaAtual: (musica: any, listaDeMusicas?: any[]) => void;
 }
 
 export default function GerenciarMusicas({ setMusicaAtual }: GerenciarMusicasProps) {
@@ -21,6 +21,29 @@ export default function GerenciarMusicas({ setMusicaAtual }: GerenciarMusicasPro
         setLoading(false);
       });
   }, []);
+
+  // 2. 🟢 Função auxiliar para disparar a música selecionada com a lista inteira como fila
+  const handlePlayMusica = (musicaSelecionada: any) => {
+    // Mapeia a lista inteira garantindo que todas tenham os dados necessários para o player
+    const filaFormatada = musicas.map(m => ({
+      _id: m._id,
+      nome: m.nome,
+      artista: m.artista,
+      audioUrl: m.audioUrl,
+      capaUrl: m.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&q=80"
+    }));
+
+    const faixaPronta = {
+      _id: musicaSelecionada._id, // 🟢 CRUCIAL: Mantido o ID para o findIndex funcionar
+      nome: musicaSelecionada.nome,
+      artista: musicaSelecionada.artista,
+      audioUrl: musicaSelecionada.audioUrl,
+      capaUrl: musicaSelecionada.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&q=80"
+    };
+
+    // Envia a música atual e a lista completa como fila global
+    setMusicaAtual(faixaPronta, filaFormatada);
+  };
 
   return (
     <div style={{ color: '#fff', fontFamily: 'sans-serif' }}>
@@ -43,13 +66,8 @@ export default function GerenciarMusicas({ setMusicaAtual }: GerenciarMusicasPro
           {musicas.map((musica, index) => (
             <div
               key={musica._id}
-              /* 🟢 Ao clicar na linha, dispara o player global exatamente igual ao DetalheAlbum */
-              onClick={() => setMusicaAtual({
-                nome: musica.nome,
-                artista: musica.artista,
-                audioUrl: musica.audioUrl,
-                capaUrl: musica.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&q=80"
-              })}
+              /* 3. 🟢 Dispara a nova função ao clicar na linha */
+              onClick={() => handlePlayMusica(musica)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -75,7 +93,7 @@ export default function GerenciarMusicas({ setMusicaAtual }: GerenciarMusicasPro
                 {musica.duracao || musica.minutagem}
               </div>
               
-              {/* 🟢 Botão rápido para dar Play individual no mesmo padrão visual do álbum */}
+              {/* Botão rápido para dar Play individual */}
               <div style={{ width: '20%', textAlign: 'right', color: '#1ed760', fontSize: '0.85rem', fontWeight: 'bold' }}>
                 Ouvir Faixa ▶
               </div>

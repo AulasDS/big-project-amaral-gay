@@ -21,7 +21,11 @@ interface Album {
   genero: string;
 }
 
-export default function Home() {
+interface HomeProps {
+  pesquisa: string;
+}
+
+export default function Home({ pesquisa }: HomeProps) {
   const [musicas, setMusicas] = useState<Musica[]>([]);
   const [albuns, setAlbuns] = useState<Album[]>([]); 
   
@@ -68,13 +72,23 @@ export default function Home() {
     }
   }, [generoSelecionado]);
 
+  const albunsFiltrados = albuns.filter((album) =>
+    album.nome.toLowerCase().includes(pesquisa.toLowerCase()) ||
+    album.artista.toLowerCase().includes(pesquisa.toLowerCase())
+  );
+
+  const musicasFiltradas = musicas.filter((musica) =>
+    musica.nome.toLowerCase().includes(pesquisa.toLowerCase()) ||
+    musica.artista.toLowerCase().includes(pesquisa.toLowerCase())
+  );
+
   return (
     <div
       style={{
-        backgroundColor: '#121212',
-        minHeight: '100vh',
+        backgroundColor: 'transparent', 
+        width: '100%',                  
         color: '#fff',
-        padding: '32px',
+        padding: '8px 16px',            
         fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif'",
       }}
     >
@@ -125,11 +139,11 @@ export default function Home() {
         </h2>
 
         {generoSelecionado === 'Álbuns' ? (
-          albuns.length === 0 ? (
+          albunsFiltrados.length === 0 ? (
             <p style={{ color: '#b3b3b3', fontSize: '0.9rem' }}>Nenhum álbum encontrado.</p>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '24px' }}>
-              {albuns.map((album) => {
+              {albunsFiltrados.map((album) => {
                 const isHovered = hoveredId === album._id;
 
                 return (
@@ -139,7 +153,7 @@ export default function Home() {
                     onMouseEnter={() => setHoveredId(album._id)}
                     onMouseLeave={() => setHoveredId(null)}
                     style={{
-                      backgroundColor: isHovered ? '#282828' : '#181818',
+                      backgroundColor: isHovered ? '#282828' : '#121212',
                       padding: '16px',
                       borderRadius: '8px',
                       cursor: 'pointer',
@@ -178,11 +192,11 @@ export default function Home() {
             </div>
           )
         ) : (
-          musicas.length === 0 ? (
-            <p style={{ color: '#b3b3b3', fontSize: '0.9rem' }}>Nenhuma música encontrada neste gênero.</p>
+          musicasFiltradas.length === 0 ? (
+            <p style={{ color: '#b3b3b3', fontSize: '0.9rem' }}>Nenhuma música encontrada.</p>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '24px' }}>
-              {musicas.map((musica) => {
+              {musicasFiltradas.map((musica) => {
                 const isHovered = hoveredId === musica._id;
 
                 return (
@@ -192,7 +206,7 @@ export default function Home() {
                     onMouseEnter={() => setHoveredId(musica._id)}
                     onMouseLeave={() => setHoveredId(null)}
                     style={{
-                      backgroundColor: isHovered ? '#282828' : '#181818',
+                      backgroundColor: isHovered ? '#282828' : '#121212',
                       padding: '16px',
                       borderRadius: '8px',
                       cursor: 'pointer',
@@ -205,7 +219,6 @@ export default function Home() {
                   >
                     <div style={{ width: '100%', aspectRatio: '1/1', borderRadius: '6px', overflow: 'hidden' }}>
                       <img
-                        /* 🟢 Alterado aqui para renderizar dinamicamente a capaUrl da música vinda do Back-end */
                         src={musica.capaUrl || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=300'}
                         alt={musica.nome}
                         style={{ width: '100%', height: '100%', objectFit: 'cover', transform: isHovered ? 'scale(1.04)' : 'scale(1)', transition: 'transform 0.3s ease' }}

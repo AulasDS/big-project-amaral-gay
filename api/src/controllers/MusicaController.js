@@ -1,10 +1,23 @@
 const Musica = require('../models/Musica');
 const Album = require('../models/Album');
+const { OpenAI } = require('openai');
+const fs = require('fs');
+const path = require('path');
+const axios = require('axios');
+
+// 🔴 CONFIGURAÇÃO DA IA: Coloque sua chave da Groq aqui!
+const openai = new OpenAI({
+    apiKey: process.env.GROQ_API_KEY, 
+    baseURL: 'https://api.groq.com/openai/v1',
+});
 
 module.exports = {
     create: async (req, res) => {
+        // Criamos a variável fora para o fs conseguir apagar o arquivo no bloco final (catch/finally) se algo falhar
+        let tempFilePath = null; 
+        
         try {
-            let { nome, artista, genero, capaUrl, audioUrl, albumId } = req.body;
+            let { nome, artista, genero, capaUrl, audioUrl, albumId, gerarLetraAutomatico } = req.body;
 
             // Se a música pertence a um álbum e não foi fornecida uma capaUrl específica para ela, automaticamente a capa cadastrada no álbum pai
             if (!capaUrl && albumId) {
@@ -14,13 +27,61 @@ module.exports = {
                 }
             }
 
+            let letraGerada = [];
+
+            // 🔴 ENTRADA DA INTELIGÊNCIA ARTIFICIAL:
+            if (gerarLetraAutomatico && audioUrl) {
+                console.log(`🤖 Baixando áudio para transcrever a faixa: "${nome}"...`);
+                
+                // Define o caminho temporário do arquivo mp3 de forma única
+                tempFilePath = path.join(__dirname, `temp_${Date.now()}_audio.mp3`);
+                
+                // Faz o download via stream
+                const responseAudio = await axios({
+                    url: audioUrl,
+                    method: 'GET',
+                    responseType: 'stream',
+                });
+                
+                const writer = fs.createWriteStream(tempFilePath);
+                responseAudio.data.pipe(writer);
+
+                await new Promise((resolve, reject) => {
+                    writer.on('finish', resolve);
+                    writer.on('error', reject);
+                });
+
+                console.log(`✨ Transcrevendo áudio com Whisper AI...`);
+                
+                // Envia o arquivo baixado para a Groq extrair segmentos de áudio e carimbos de tempo (timestamps)
+                const transcricao = await openai.audio.transcriptions.create({
+                    file: fs.createReadStream(tempFilePath),
+                    model: 'whisper-large-v3',
+                    response_format: 'verbose_json',
+                });
+
+                if (transcricao.segments) {
+                    let letraGerada = transcricao.segments.map((segmento) => ({
+                        tempo: Math.round(segmento.start), // O segundo em que a frase começa
+                        texto: segmento.text.trim(),       // A frase falada/cantada
+                    }));
+                }
+
+                // Remove o arquivo do servidor imediatamente após o uso
+                if (fs.existsSync(tempFilePath)) {
+                    fs.unlinkSync(tempFilePath);
+                }
+                console.log(`✅ Transcrição concluída com sucesso!`);
+            }
+
             const novaMusica = new Musica({
                 nome,
                 artista,
                 genero,
                 capaUrl, 
                 audioUrl,
-                albumId
+                albumId,
+                letraSincronizada: letraGerada
             });
 
             await novaMusica.save();
@@ -33,6 +94,10 @@ module.exports = {
 
             return res.status(201).json(novaMusica);
         } catch (error) {
+            // Segurança: Se der erro no download ou na API, limpa o arquivo morto temporário do servidor
+            if (tempFilePath && fs.existsSync(tempFilePath)) {
+                fs.unlinkSync(tempFilePath);
+            }
             return res.status(500).json({ error: 'Erro ao criar a música', details: error.message });
         }
     },
