@@ -110,12 +110,15 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
   const tocarAlbumCompleto = () => {
     if (album?.musicas && album.musicas.length > 0) {
       const primeiraFaixa = album.musicas[0];
+
       setMusicaAtual({
+        _id: primeiraFaixa._id, 
         nome: primeiraFaixa.nome,
         artista: primeiraFaixa.artista || album.artista,
         audioUrl: primeiraFaixa.audioUrl,
         capaUrl: album.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=400"
       }, album.musicas.map(m => ({
+        _id: m._id, 
         nome: m.nome,
         artista: m.artista || album.artista,
         audioUrl: m.audioUrl,
@@ -221,7 +224,7 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
             cursor: 'pointer',
           }}
         >
-          ← Voltar
+
         </button>
       </div>
 
@@ -389,9 +392,9 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
                       </strong>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <span style={{ color: '#1ed760', fontSize: '0.8rem' }}>{'⭐'.repeat(rev.nota)}</span>
-                        
+
                         {ehDono && (
-                          <button 
+                          <button
                             onClick={() => handleDeletarReview(rev._id)}
                             style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', padding: 0 }}
                             title="Apagar meu comentário"

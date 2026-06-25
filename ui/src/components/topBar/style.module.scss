@@ -1,0 +1,160 @@
+.spotify-topbar {
+  height: 64px;
+  background-color: #121212;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  // 1. Botões de Navegação
+  .navigation-buttons {
+    display: flex;
+    gap: 8px;
+
+    .nav-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: #0a0a0a;
+      border: none;
+      color: #b3b3b3;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #ffffff;
+      }
+    }
+  }
+
+  // 2. Barra de Pesquisa
+  .search-container {
+    flex: 1;
+    max-width: 364px;
+    margin: 0 16px;
+    position: relative;
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #b3b3b3;
+      font-size: 1.1rem;
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      background-color: #242424;
+      border: 1px solid transparent;
+      border-radius: 500px;
+      padding: 12px 12px 12px 40px;
+      color: #fff;
+      font-size: 0.875rem;
+      font-weight: 500;
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+
+      &:focus {
+        border-color: #727272;
+      }
+    }
+  }
+
+  // 3. Container do Perfil e Dropdown
+  .profile-container {
+    position: relative;
+
+    .profile-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: #282828;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: bold;
+      color: #fff;
+      font-size: 1rem;
+      border: 2px solid transparent;
+      transition: transform 0.2s;
+
+      &:hover {
+        transform: scale(1.05);
+      }
+    }
+
+    .profile-dropdown {
+      position: absolute;
+      top: 44px;
+      right: 0;
+      background-color: #282828;
+      border-radius: 4px;
+      padding: 4px;
+      min-width: 160px;
+      box-shadow: 0 16px 24px rgba(0, 0, 0, 0.5);
+      z-index: 101;
+
+      .user-name {
+        padding: 10px 12px;
+        font-size: 0.85rem;
+        color: #fff;
+        border-bottom: 1px solid #3e3e3e;
+        font-weight: bold;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      // 🟢 Nova regra genérica para os botões do menu
+      .dropdown-link {
+        width: 100%;
+        background-color: transparent;
+        border: none;
+        color: #eaeaea;
+        padding: 10px 12px;
+        text-align: left;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border-radius: 2px;
+        display: block;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: #3e3e3e;
+        }
+      }
+    }
+
+    .logout-btn {
+      width: 100%;
+      background-color: transparent;
+      border: none;
+      color: #eaeaea;
+      padding: 10px 12px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 2px;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: #3e3e3e;
+      }
+    }
+  }
+}

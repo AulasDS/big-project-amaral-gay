@@ -7,17 +7,16 @@ export default function Navbar() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   const itensMenu = [
-    { nome: 'Início', rota: '/', icone: '' },
-    { nome: 'Biblioteca', rota: '/biblioteca', icone: '' },
-    { nome: 'Músicas', rota: '/musicas', icone: '' },
-    { nome: 'Criar Música', rota: '/inserir-musica', icone: '' },
-    { nome: 'Criar Álbum', rota: '/inserir-album', icone: '' },
-    { nome: 'Gerenciar Usuários', rota: '/usuarios', icone: '' },
+    { nome: 'Início', rota: '/' },
+    { nome: 'Biblioteca', rota: '/biblioteca'},
+    { nome: 'Músicas', rota: '/musicas', },
+    { nome: 'Criar Música', rota: '/inserir-musica', },
+    { nome: 'Criar Álbum', rota: '/inserir-album', },
   ];
 
   return (
     <nav style={{
-      backgroundColor: '#000000',
+      backgroundColor: 'transparent', // 🟢 Corrigido para transparente para não criar blocos pretos rígidos
       height: '100%',            
       display: 'flex',
       flexDirection: 'column',
@@ -62,7 +61,7 @@ export default function Navbar() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '16px',
-                backgroundColor: 'transparent',
+                backgroundColor: isHovered ? '#1a1a1a' : 'transparent', // Adiciona feedback suave ao passar o mouse
                 border: 'none',
                 padding: '12px 16px',
                 borderRadius: '4px',
@@ -73,9 +72,6 @@ export default function Navbar() {
                 color: isActive || isHovered ? '#ffffff' : '#b3b3b3',
               }}
             >
-              <span style={{ fontSize: '1.2rem', filter: isActive ? 'drop-shadow(0 0 2px #1ed760)' : 'none' }}>
-                {item.icone}
-              </span>
               <span style={{ fontSize: '0.95rem', fontWeight: isActive ? '700' : '600' }}>
                 {item.nome}
               </span>
