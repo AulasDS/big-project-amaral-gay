@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom'; // 🟢 Adicionado useLocation
+import { useParams, useNavigate, useLocation } from 'react-router-dom'; // 🟢 Mantido useLocation
 import axios from 'axios';
+
+// 🟢 Mantida a definição da estrutura LetraLinha corretiva
+interface LetraLinha {
+  tempo: number;
+  texto: string;
+}
 
 interface Musica {
   _id: string;
@@ -12,7 +18,8 @@ interface Musica {
   feat?: string;
   audioUrl: string;
   albumId?: string;
-  capaUrl?: string; 
+  capaUrl?: string;
+  letraSincronizada?: LetraLinha[];
 }
 
 interface Comentario {
@@ -29,13 +36,13 @@ interface DetalheMusicaProps {
 export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const location = useLocation(); // 🟢 Instanciado para rastrear a origem da navegação
-  
+  const location = useLocation(); // 🟢 Mantido para rastrear a origem da navegação
+
   const [musica, setMusica] = useState<Musica | null>(null);
   const [erro, setErro] = useState<string | null>(null);
-  
+
   const [curtido, setCurtido] = useState(false);
-  const userId = localStorage.getItem('userId'); 
+  const userId = localStorage.getItem('userId');
   const [nota, setNota] = useState(5);
   const [textoComentario, setTextoComentario] = useState('');
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
@@ -48,7 +55,20 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
     axios
       .get(`http://localhost:5000/musica/${id}`)
       .then((res) => {
-        setMusica(res.data);
+        let dadosMusica = res.data;
+
+        // 🔍 Garante que se o banco trouxer algo que não seja um Array bizarro, nós tratamos
+        if (!dadosMusica.letraSincronizada || !Array.isArray(dadosMusica.letraSincronizada) || dadosMusica.letraSincronizada.length === 0) {
+          dadosMusica.letraSincronizada = [
+            { tempo: 0, texto: "🎵 (Intro Instrumental)" },
+            { tempo: 5, texto: "Esta música ainda não possui letra gerada por IA." },
+            { tempo: 10, texto: "Marque a caixinha ao cadastrar para testar o Whisper!" }
+          ];
+        }
+
+        setMusica(dadosMusica);
+
+        // Seus comentários personalizados mantidos aqui:
         setComentarios([
           { usuario: 'bigode', nota: 5, texto: 'tico', data: '17/06/2026' },
           { usuario: 'max', nota: 4, texto: 'Muito boa essa faixa, o ritmo é contagiante.', data: '17/06/2026' },
@@ -77,11 +97,16 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
   // dispara a música para o rodapé do App.tsx
   const handlePlayMusica = () => {
     if (!musica) return;
-    
-    setMusicaAtual({
-      ...musica,
+
+    const faixaPronta = {
+      _id: musica._id, // 🟢 Garante o ID para o indexador do player
+      nome: musica.nome,
+      artista: musica.artista,
+      audioUrl: musica.audioUrl,
       capaUrl: musica.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&q=80"
-    });
+    };
+
+    setMusicaAtual(faixaPronta, [faixaPronta]);
   };
 
   const handleCurtirMusica = () => {
@@ -91,7 +116,7 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
     }
 
     if (!curtido) {
-      // curtir Música (
+      // curtir Música
       axios.post('http://localhost:5000/biblioteca', { userId, musicaId: id })
         .then(() => {
           setCurtido(true);
@@ -157,40 +182,22 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
         fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
       }}
     >
-      {/* Botão de Voltar */}
-      <div style={{ padding: '24px 32px 0 32px' }}>
-        <button 
-          onClick={() => navigate(rotaOrigem)} 
-          style={{
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            color: '#fff',
-            border: 'none',
-            padding: '8px 16px',
-            borderRadius: '500px',
-            fontSize: '0.85rem',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-          }}
-        >
-          ← Voltar
-        </button>
-      </div>
 
       {/* Seção Hero */}
-      <section 
-        style={{ 
-          display: 'flex', 
-          alignItems: 'flex-end', 
-          gap: '24px', 
+      <section
+        style={{
+          display: 'flex',
+          alignItems: 'flex-end',
+          gap: '24px',
           padding: '24px 32px 40px 32px',
           background: 'linear-gradient(transparent, rgba(0,0,0,0.5))',
-          backgroundColor: '#242424' 
+          backgroundColor: '#242424'
         }}
       >
         <div style={{ width: '232px', height: '232px', minWidth: '232px', boxShadow: '0 4px 60px rgba(0,0,0,0.5)', borderRadius: '4px', overflow: 'hidden' }}>
-          <img 
-            src={musica.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=300"} 
-            alt={musica.nome} 
+          <img
+            src={musica.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=300"}
+            alt={musica.nome}
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         </div>
@@ -215,10 +222,11 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
         </div>
       </section>
 
+      {/* Seção do Player e Interações */}
       <section style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: '40px', background: 'linear-gradient(rgba(0,0,0,0.6) 0%, #121212 100%)' }}>
-        
+
+        {/* Área de Ação */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
-          
           <button
             onClick={handlePlayMusica}
             onMouseEnter={() => setIsHoveredPlay(true)}
@@ -243,7 +251,7 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
             </svg>
           </button>
 
-          <button 
+          <button
             onClick={handleCurtirMusica}
             style={{
               background: 'none',
@@ -262,54 +270,85 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
           </button>
         </div>
 
-        <div style={{ backgroundColor: '#181818', padding: '24px', borderRadius: '8px', maxWidth: '700px' }}>
-          <h3 style={{ fontSize: '1.2rem', marginBottom: '20px' }}>Comentários Públicos</h3>
-          
-          <form onSubmit={handleEnviarComentario} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '32px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <label style={{ fontSize: '0.85rem', color: '#b3b3b3' }}>Sua avaliação:</label>
-              <select 
-                value={nota} 
-                onChange={(e) => setNota(Number(e.target.value))}
-                style={{ backgroundColor: '#2a2a2a', border: 'none', color: '#1ed760', padding: '6px 12px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
-              >
-                <option value={5}>⭐⭐⭐⭐⭐ (5)</option>
-                <option value={4}>⭐⭐⭐⭐ (4)</option>
-                <option value={3}>⭐⭐⭐ (3)</option>
-                <option value={2}>⭐⭐ (2)</option>
-                <option value={1}>⭐ (1)</option>
-              </select>
-            </div>
+        {/* 🟢 MODIFICADO: Layout Lado a Lado (Letras na esquerda, Comentários na direita) */}
+        <div style={{ display: 'flex', gap: '48px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <input 
-                type="text" 
-                placeholder="Adicione um comentário público..." 
-                value={textoComentario} 
-                onChange={(e) => setTextoComentario(e.target.value)}
-                required
-                style={{ flexGrow: 1, backgroundColor: '#2a2a2a', border: 'none', padding: '12px', borderRadius: '4px', color: '#fff' }}
-              />
-              <button type="submit" style={{ backgroundColor: '#1ed760', color: '#000', border: 'none', padding: '0 24px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>
-                Comentar
-              </button>
+          {/* Coluna das Letras */}
+          <div style={{ flex: '1', minWidth: '300px' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '24px', letterSpacing: '-0.02em' }}>Letras</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {musica.letraSincronizada && musica.letraSincronizada.map((linha, idx) => (
+                <p
+                  key={idx}
+                  style={{
+                    fontSize: '1.8rem',
+                    fontWeight: 'bold',
+                    margin: 0,
+                    color: '#b3b3b3',
+                    transition: 'color 0.3s ease',
+                    lineHeight: '1.3',
+                    letterSpacing: '-0.03em',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = '#b3b3b3')}
+                >
+                  {linha.texto}
+                </p>
+              ))}
             </div>
-          </form>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '350px', overflowY: 'auto' }}>
-            {comentarios.map((c, index) => (
-              <div key={index} style={{ backgroundColor: '#232323', padding: '14px', borderRadius: '4px', fontSize: '0.9rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 'bold', color: '#fff', fontSize: '0.85rem' }}>{c.usuario}</span>
-                  <span style={{ color: '#1ed760', fontSize: '0.8rem' }}>{'⭐'.repeat(c.nota)}</span>
-                </div>
-                <p style={{ margin: '0 0 6px 0', color: '#e1e1e1', lineHeight: '1.4' }}>{c.texto}</p>
-                <span style={{ fontSize: '0.75rem', color: '#727272' }}>{c.data}</span>
-              </div>
-            ))}
           </div>
-        </div>
 
+          {/* Coluna de Comentários */}
+          <div style={{ backgroundColor: '#181818', padding: '24px', borderRadius: '8px', flex: '1', minWidth: '300px', maxWidth: '600px' }}>
+            <h3 style={{ fontSize: '1.2rem', marginBottom: '20px' }}>Comentários Públicos</h3>
+
+            <form onSubmit={handleEnviarComentario} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '32px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <label style={{ fontSize: '0.85rem', color: '#b3b3b3' }}>Sua avaliação:</label>
+                <select
+                  value={nota}
+                  onChange={(e) => setNota(Number(e.target.value))}
+                  style={{ backgroundColor: '#2a2a2a', border: 'none', color: '#1ed760', padding: '6px 12px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  <option value={5}>⭐⭐⭐⭐⭐ (5)</option>
+                  <option value={4}>⭐⭐⭐⭐ (4)</option>
+                  <option value={3}>⭐⭐⭐ (3)</option>
+                  <option value={2}>⭐⭐ (2)</option>
+                  <option value={1}>⭐ (1)</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <input
+                  type="text"
+                  placeholder="Adicione um comentário público..."
+                  value={textoComentario}
+                  onChange={(e) => setTextoComentario(e.target.value)}
+                  required
+                  style={{ flexGrow: 1, backgroundColor: '#2a2a2a', border: 'none', padding: '12px', borderRadius: '4px', color: '#fff' }}
+                />
+                <button type="submit" style={{ backgroundColor: '#1ed760', color: '#000', border: 'none', padding: '0 24px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>
+                  Comentar
+                </button>
+              </div>
+            </form>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '350px', overflowY: 'auto' }}>
+              {comentarios.map((c, index) => (
+                <div key={index} style={{ backgroundColor: '#232323', padding: '14px', borderRadius: '4px', fontSize: '0.9rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 'bold', color: '#fff', fontSize: '0.85rem' }}>{c.usuario}</span>
+                    <span style={{ color: '#1ed760', fontSize: '0.8rem' }}>{'⭐'.repeat(c.nota)}</span>
+                  </div>
+                  <p style={{ margin: '0 0 6px 0', color: '#e1e1e1', lineHeight: '1.4' }}>{c.texto}</p>
+                  <span style={{ fontSize: '0.75rem', color: '#727272' }}>{c.data}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
       </section>
     </div>
   );

@@ -8,10 +8,11 @@ interface TelaAberturaProps {
 export default function TelaAbertura({ onLoginSucesso }: TelaAberturaProps) {
   const [abaAtiva, setAbaAtiva] = useState<'login' | 'cadastro'>('login');
 
-  const [nomeLogin, setNomeLogin] = useState(''); // 🟢 Alterado de emailLogin para nomeLogin
+  const [nomeLogin, setNomeLogin] = useState(''); 
   const [nome, setNome] = useState('');
   const [emailCadastro, setEmailCadastro] = useState('');
   const [dataNascimento, setDataNascimento] = useState('');
+  const [tipo, setTipo] = useState('ouvinte'); // 🟢 Novo estado adicionado aqui
 
   const salvarSessaoELogar = (user: any) => {
     const idGerado = user._id || user.id;
@@ -37,7 +38,6 @@ export default function TelaAbertura({ onLoginSucesso }: TelaAberturaProps) {
         );
 
         if (usuarioEncontrado) {
-          
           salvarSessaoELogar(usuarioEncontrado);
         } else {
           alert("Nenhum perfil encontrado com este nome de usuário. Que tal se inscrever?");
@@ -57,7 +57,8 @@ export default function TelaAbertura({ onLoginSucesso }: TelaAberturaProps) {
     const novoUsuario = {
       nome,
       email: emailCadastro,
-      dataNascimento
+      dataNascimento,
+      tipo // 🟢 Enviando também para o banco
     };
 
     axios.post('http://localhost:5000/usuario', novoUsuario)
@@ -90,7 +91,6 @@ export default function TelaAbertura({ onLoginSucesso }: TelaAberturaProps) {
       boxSizing: 'border-box'
     }}>
 
-      {/* Logo do Spotify centralizado */}
       <div style={{ marginBottom: '32px', textAlign: 'center' }}>
         <svg viewBox="0 0 167.5 167.5" style={{ width: '45px', height: '45px', fill: '#fff' }}>
           <path d="M83.7 0C37.5 0 0 37.5 0 83.7c0 46.3 37.5 83.7 83.7 83.7 46.3 0 83.7-37.5 83.7-83.7C167.5 37.5 130 0 83.7 0zm38.4 120.8c-1.5 2.5-4.8 3.3-7.3 1.8-20.1-12.3-45.4-15.1-75.2-8.3-2.9.7-5.8-1.2-6.5-4.1-.7-2.9 1.2-5.8 4.1-6.5 32.6-7.5 60.6-4.3 83.1 9.5 2.5 1.5 3.3 4.8 1.8 7.6zm10.2-22.8c-1.9 3.1-6 4.1-9.1 2.2-23-14.2-58.1-18.3-85.3-10-3.5 1.1-7.2-1-8.3-4.5-1.1-3.5 1-7.2 4.5-8.3 31.2-9.5 70-4.9 96 11.1 3.1 1.9 4.1 6 2.2 9.5zm.8-23.7C105 57.2 51.7 55.4 20.8 64.8c-4.8 1.5-9.9-1.3-11.4-6.1-1.5-4.8 1.3-9.9 6.1-11.4 35.5-10.8 94.6-8.8 131.7 13.2 4.3 2.6 5.8 8.2 3.2 12.5-2.5 4.3-8.2 5.8-12.5 3.2z" />
@@ -100,7 +100,6 @@ export default function TelaAbertura({ onLoginSucesso }: TelaAberturaProps) {
       <div style={{ width: '100%', maxWidth: '324px' }}>
 
         {abaAtiva === 'login' ? (
-          /* ================= ABRE INTERFACE DE LOGIN ================= */
           <form onSubmit={handleLoginExistente} style={{ display: 'flex', flexDirection: 'column' }}>
             <h1 style={{ fontSize: '2.25rem', fontWeight: 'bold', textAlign: 'center', marginBottom: '32px', letterSpacing: '-0.04em' }}>
               Olá de novo
@@ -109,7 +108,7 @@ export default function TelaAbertura({ onLoginSucesso }: TelaAberturaProps) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
               <label style={{ fontSize: '0.875rem', fontWeight: 'bold' }}>Nome de usuário</label>
               <input
-                type="text" // 🟢 Corrigido de "email" para "text" para aceitar qualquer caractere livremente
+                type="text"
                 value={nomeLogin}
                 onChange={e => setNomeLogin(e.target.value)}
                 required
@@ -157,7 +156,6 @@ export default function TelaAbertura({ onLoginSucesso }: TelaAberturaProps) {
             </p>
           </form>
         ) : (
-          /* ================= ABRE INTERFACE DE CADASTRO ================= */
           <form onSubmit={handleCadastrarEEntrar} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <h1 style={{ fontSize: '2rem', fontWeight: 'bold', textAlign: 'center', marginBottom: '16px', letterSpacing: '-0.04em' }}>
               Inscrever-se
@@ -171,7 +169,7 @@ export default function TelaAbertura({ onLoginSucesso }: TelaAberturaProps) {
                 onChange={e => setNome(e.target.value)}
                 required
                 placeholder="Ex: João Silva"
-                style={{ backgroundColor: '#121212', border: '1px solid #727272', borderRadius: '4px', padding: '14px', color: '#fff', fontSize: '0.95rem' }}
+                style={{ backgroundColor: '#121212', border: '1px solid #727272', borderRadius: '4px', padding: '14px', color: '#fff', fontSize: '0.95rem', outline: 'none' }}
               />
             </div>
 
@@ -183,7 +181,7 @@ export default function TelaAbertura({ onLoginSucesso }: TelaAberturaProps) {
                 onChange={e => setEmailCadastro(e.target.value)}
                 required
                 placeholder="nome@gmail.com"
-                style={{ backgroundColor: '#121212', border: '1px solid #727272', borderRadius: '4px', padding: '14px', color: '#fff', fontSize: '0.95rem' }}
+                style={{ backgroundColor: '#121212', border: '1px solid #727272', borderRadius: '4px', padding: '14px', color: '#fff', fontSize: '0.95rem', outline: 'none' }}
               />
             </div>
 
@@ -212,9 +210,23 @@ export default function TelaAbertura({ onLoginSucesso }: TelaAberturaProps) {
                   padding: '14px',
                   color: '#fff',
                   fontSize: '0.95rem',
-                  fontFamily: 'inherit'
+                  fontFamily: 'inherit',
+                  outline: 'none'
                 }}
               />
+            </div>
+
+            {/* 🟢 Novo input select adicionado para espelhar o FormularioUsuario */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '0.875rem', fontWeight: 'bold' }}>Tipo de Perfil</label>
+              <select 
+                value={tipo} 
+                onChange={e => setTipo(e.target.value)} 
+                style={{ backgroundColor: '#121212', border: '1px solid #727272', borderRadius: '4px', padding: '14px', color: '#fff', fontSize: '0.95rem', cursor: 'pointer', outline: 'none' }}
+              >
+                <option value="ouvinte">Ouvinte (Free/Premium)</option>
+                <option value="artista">Artista (Criador de Conteúdo)</option>
+              </select>
             </div>
 
             <button

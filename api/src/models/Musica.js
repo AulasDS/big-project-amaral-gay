@@ -10,7 +10,15 @@ const MusicaSchema = new mongoose.Schema({
     },
     ano: Number,
     capaUrl: String,
-    audioUrl: String    
+    audioUrl: String,
+  
+    letraSincronizada: [
+    {
+        tempo: { type: Number, required: true },
+        texto: { type: String, required: true }
+    }
+]  
+
 });
 
 const Musica = mongoose.model('Musica', MusicaSchema);

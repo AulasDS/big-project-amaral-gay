@@ -16,6 +16,7 @@ export default function FormularioMusica() {
   const [albumId, setAlbumId] = useState('');
   const [audioUrl, setAudioUrl] = useState(''); 
   const [albuns, setAlbuns] = useState<Album[]>([]);
+  const [gerarLetraAutomatico, setGerarLetraAutomatico] = useState(false);
   
   const navigate = useNavigate();
 
@@ -44,7 +45,9 @@ export default function FormularioMusica() {
       genero: genero.trim(),
       capaUrl,
       albumId: albumId === "" ? defaultAlbum : albumId, 
-      audioUrl
+      audioUrl,
+      // 🟢 ADICIONADO: repassando flag para o backend processar com Whisper AI
+      gerarLetra: gerarLetraAutomatico
     };
 
     axios.post('http://localhost:5000/musica', dadosDaMusica)
@@ -69,15 +72,6 @@ export default function FormularioMusica() {
       boxSizing: 'border-box' 
     }}>
       <div style={{ width: '100%', maxWidth: '450px' }}>
-        
-        <h2 style={{ 
-          fontSize: '2.5rem', 
-          fontWeight: '700', 
-          marginBottom: '32px', 
-          textAlign: 'center',
-          letterSpacing: '-0.04em'
-        }}>
-        </h2>
         
         <form onSubmit={handleSalvar} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
@@ -202,6 +196,20 @@ export default function FormularioMusica() {
                 <option key={album._id} value={album._id} style={{ background: '#121212' }}>{album.nome}</option>
               ))}
             </select>
+          </div>
+
+          {/* 100% ADICIONADO: Campo Switch/Checkbox para IA */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px', backgroundColor: '#181818', padding: '12px', borderRadius: '4px', border: '1px solid #282828' }}>
+            <input 
+              type="checkbox" 
+              id="gerarLetra"
+              checked={gerarLetraAutomatico}
+              onChange={e => setGerarLetraAutomatico(e.target.checked)}
+              style={{ width: '18px', height: '18px', accentColor: '#1ed760', cursor: 'pointer' }}
+            />
+            <label htmlFor="gerarLetra" style={{ fontSize: '0.9rem', fontWeight: '600', color: '#fff', cursor: 'pointer' }}>
+              🤖 Transcrever letra automaticamente com IA
+            </label>
           </div>
 
           <button 
