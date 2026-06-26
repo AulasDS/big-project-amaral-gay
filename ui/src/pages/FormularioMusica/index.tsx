@@ -15,12 +15,10 @@ export default function FormularioMusica() {
   const [capaUrl, setCapaUrl] = useState('');
   const [albumId, setAlbumId] = useState('');
   const [audioUrl, setAudioUrl] = useState(''); 
-  const [albuns, setAlbuns] = useState<Album[]>([]);
-  const [gerarLetraAutomatico, setGerarLetraAutomatico] = useState(false);
-  
+  const [albuns, setAlbuns] = useState<Album[]>([]);  
   // Estados para controle do Whisper via Backend
   const [gerarLetraAutomatico, setGerarLetraAutomatico] = useState(false);
-  const [carregando, setCarregando] = useState(false);
+  
   
   const navigate = useNavigate();
 
@@ -42,7 +40,7 @@ export default function FormularioMusica() {
 
   const handleSalvar = (e: React.FormEvent) => {
     e.preventDefault();
-    setCarregando(true);
+   
 
     const dadosDaMusica = {
       nome: titulo,
@@ -60,7 +58,7 @@ export default function FormularioMusica() {
         navigate('/'); 
       })
       .catch(err => alert("Erro ao salvar: " + (err.response?.data?.message || err.message)))
-      .finally(() => setCarregando(false));
+      
   };
 
   return (

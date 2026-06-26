@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 // Interface para as linhas da letra sincronizada
@@ -36,7 +36,7 @@ interface DetalheMusicaProps {
 export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const location = useLocation(); // Mantido para rastrear a origem da navegação
+
 
   const [musica, setMusica] = useState<Musica | null>(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -66,10 +66,16 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
 
         setMusica(dadosMusica);
 
+
         setComentarios([
           { usuario: 'Luiz', nota: 5, texto: 'Uma das melhores do ano, produção impecável!', data: '17/06/2026' },
-          { usuario: 'Anônimo', nota: 4, texto: 'Muito boa essa faixa, o ritmo é contagiante.', data: '17/06/2026' }
+          { usuario: 'amaral', nota: 4, texto: 'Muito boa essa faixa, o ritmo é contagiante', data: '17/06/2026' },
+          { usuario: 'max', nota: 4, texto: 'quem nunca se aventurou na selva pra encontrar jiboia nao sabe o que esta perdendo', data: '17/06/2026' },
+          { usuario: 'japa', nota: 4, texto: 'pior que a pegada do traste me faz perder o juizo.', data: '17/06/2026' },
+          { usuario: 'bola8', nota: 4, texto: 'pagar um boleto eu nao sei, agora pagar um babaokkkk dou ate aula', data: '17/06/2026' },
+          { usuario: 'hoffmann', nota: 4, texto: 'ou da o cu pra nois ou da o cu com nois', data: '17/06/2026' }
         ]);
+
       })
       .catch((err) => {
         console.error(err);
@@ -218,7 +224,7 @@ export default function DetalheMusica({ setMusicaAtual }: DetalheMusicaProps) {
 
       {/* Seção do Player e Interações */}
       <section style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: '40px', background: 'linear-gradient(rgba(0,0,0,0.6) 0%, #121212 100%)' }}>
-        
+
         {/* Área de Ação */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
           <button

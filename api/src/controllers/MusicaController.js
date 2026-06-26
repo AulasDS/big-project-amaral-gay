@@ -7,7 +7,7 @@ const axios = require('axios');
 
 // 🔴 CONFIGURAÇÃO DA IA: Coloque sua chave da Groq aqui!
 const openai = new OpenAI({
-    apiKey: '', 
+    apiKey: '=gsk_eUGnTXym99b08yrltRETWGdyb3FY6SqStUAmPo7vv5qeTLmyxb9', 
     baseURL: 'https://api.groq.com/openai/v1',
 });
 
