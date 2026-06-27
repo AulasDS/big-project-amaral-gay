@@ -167,7 +167,6 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
     if (window.confirm("Tem certeza que deseja apagar sua crítica?")) {
       axios.delete(`http://localhost:5000/review/${reviewId}/${userId}`)
         .then(() => {
-          alert("Crítica removida!");
           if (album && album.reviews) {
             const filtradas = album.reviews.filter(r => r._id !== reviewId);
             setAlbum({ ...album, reviews: filtradas });
