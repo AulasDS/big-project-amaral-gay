@@ -10,26 +10,51 @@ export default function FormularioUsuario() {
   
   const navigate = useNavigate();
 
-  const handleSalvar = (e: React.FormEvent) => {
-    e.preventDefault();
+const handleSalvar = (e: React.FormEvent) => {
+  e.preventDefault();
 
-    const dadosDoUsuario = {
-      nome,
-      email,
-      dataNascimento,
-      tipo
-    };
-
-    axios.post('http://localhost:5000/usuario', dadosDoUsuario)
-      .then(() => {
-        alert("Usuário cadastrado com sucesso!");
-        navigate('/usuarios'); 
-      })
-      .catch(err => {
-        console.error(err);
-        alert("Erro ao criar usuário: " + (err.response?.data?.message || err.message));
-      });
+  const dadosDoUsuario = {
+    nome,
+    email,
+    dataNascimento,
+    tipo // Aqui vai "ouvinte" ou "artista"
   };
+
+  axios.post('http://localhost:5000/usuario', dadosDoUsuario)
+    .then((resposta) => {
+      alert("Usuário cadastrado com sucesso!");
+      
+      // 🕵️‍♂️ Investigando o que a API devolveu:
+      console.log("Resposta bruta da API:", resposta.data);
+
+      // Verificamos se o usuário veio dentro de resposta.data.data (padrão do seu Controller)
+      // Se não veio, usamos os próprios 'dadosDoUsuario' que o formulário preencheu como garantia
+      let usuarioParaSalvar = dadosDoUsuario;
+      
+      if (resposta.data && resposta.data.data) {
+        usuarioParaSalvar = resposta.data.data;
+      }
+
+      // 🚨 GARANTIA ABSOLUTA: Se por algum motivo o 'tipo' sumiu no retorno do banco,
+      // nós forçamos o valor que o usuário selecionou no <select> antes de salvar no localStorage
+      if (!usuarioParaSalvar.tipo) {
+        usuarioParaSalvar.tipo = tipo;
+      }
+
+      console.log("Objeto que está sendo salvo no LocalStorage:", usuarioParaSalvar);
+
+      // Salva no navegador
+      localStorage.setItem('usuario', JSON.stringify(usuarioParaSalvar));
+
+      // Redireciona e atualiza a Navbar
+      navigate('/'); 
+      window.location.reload(); 
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Erro ao criar usuário: " + (err.response?.data?.message || err.message));
+    });
+};
 
   return (
     <div style={{

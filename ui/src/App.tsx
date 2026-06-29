@@ -216,7 +216,7 @@ function App() {
                   />
                 }
               />
-              <Route path='/biblioteca' element={<Biblioteca />} />
+              <Route path='/biblioteca' element={<Biblioteca />} /> 
               <Route path='/albuns' element={<GerenciarCadastro />} />
               <Route path='/inserir-album' element={<FormularioCadastro />} />
               <Route path='/musicas' element={<GerenciarMusicas setMusicaAtual={alterarMusicaGlobal} />} />

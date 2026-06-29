@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom'; // 🟢 Adicionado useLocation
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
 // Interfaces para validação do TypeScript
@@ -38,7 +38,7 @@ interface DetalheAlbumProps {
 export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const location = useLocation(); // 🟢 Instanciado para rastrear a origem da navegação
+  const location = useLocation();
 
   const [album, setAlbum] = useState<Album | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,7 +49,6 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
   const userId = localStorage.getItem('userId');
   const userName = localStorage.getItem('userName');
 
-  // captura de forma dinâmica se o usuário veio da biblioteca ou de outro lugar
   const rotaOrigem = location.state?.deOndeVeio || '/';
 
   useEffect(() => {
@@ -82,24 +81,17 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
     }
 
     if (!curtido) {
-      const dadosEnvio = {
-        userId,
-        albumId: id
-      };
+      const dadosEnvio = { userId, albumId: id };
 
       axios.post('http://localhost:5000/biblioteca', dadosEnvio)
-        .then(() => {
-          setCurtido(true);
-        })
+        .then(() => setCurtido(true))
         .catch(err => {
           console.error("Erro ao favoritar álbum:", err);
           alert("Não foi possível adicionar este álbum à sua biblioteca.");
         });
     } else {
       axios.delete(`http://localhost:5000/biblioteca/${userId}/${id}`)
-        .then(() => {
-          setCurtido(false);
-        })
+        .then(() => setCurtido(false))
         .catch(err => {
           console.error("Erro ao remover álbum da biblioteca:", err);
           alert("Erro ao remover do banco de dados. O item continuará salvo.");
@@ -131,13 +123,7 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
 
   const handleEnviarReview = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!userId || !userName) {
-      alert("Você precisa selecionar um perfil para comentar!");
-      return;
-    }
-
-    if (!comentario.trim()) return;
+    if (!userId || !userName || !comentario.trim()) return;
 
     const novaReview = {
       userId: userId,
@@ -153,7 +139,7 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
 
         if (album) {
           const reviewComNome = {
-            ...res.data.data, // Garante pegar a propriedade correta do retorno do backend
+            ...res.data.data,
             usuarioNome: userName
           };
           const reviewsAtualizadas = album.reviews ? [...album.reviews, reviewComNome] : [reviewComNome];
@@ -167,7 +153,6 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
     if (window.confirm("Tem certeza que deseja apagar sua crítica?")) {
       axios.delete(`http://localhost:5000/review/${reviewId}/${userId}`)
         .then(() => {
-          alert("Crítica removida!");
           if (album && album.reviews) {
             const filtradas = album.reviews.filter(r => r._id !== reviewId);
             setAlbum({ ...album, reviews: filtradas });
@@ -212,7 +197,7 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
     >
       <div style={{ padding: '24px 32px 0 32px' }}>
         <button
-          onClick={() => navigate(rotaOrigem)} // 🟢 ARRUMADO: Retorna para a origem dinâmica correta
+          onClick={() => navigate(rotaOrigem)}
           style={{
             backgroundColor: 'rgba(0, 0, 0, 0.7)',
             color: '#fff',
@@ -224,7 +209,7 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
             cursor: 'pointer',
           }}
         >
-
+          
         </button>
       </div>
 
@@ -309,13 +294,16 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
             album.musicas.map((musica, index) => (
               <div
                 key={musica._id}
+                /* 🟢 CORRIGIDO: Injetado os _id's tanto na faixa pronta quanto no map da fila! */
                 onClick={() => {
                   setMusicaAtual({
+                    _id: musica._id,
                     nome: musica.nome,
                     artista: musica.artista || album.artista,
                     audioUrl: musica.audioUrl,
                     capaUrl: album.capaUrl || "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&q=80"
                   }, album.musicas?.map(m => ({
+                    _id: m._id,
                     nome: m.nome,
                     artista: m.artista || album.artista,
                     audioUrl: m.audioUrl,
@@ -339,6 +327,7 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
           )}
         </div>
 
+        {/* Seção de Avaliações */}
         <div style={{ backgroundColor: '#181818', padding: '24px', borderRadius: '8px', maxWidth: '700px', marginTop: '16px' }}>
           <h3 style={{ fontSize: '1.2rem', marginBottom: '20px', fontWeight: 'bold' }}>Críticas e Avaliações</h3>
 
@@ -380,7 +369,6 @@ export default function DetalheAlbum({ setMusicaAtual }: DetalheAlbumProps) {
               <p style={{ color: '#b3b3b3', fontSize: '0.9rem', fontStyle: 'italic' }}>Nenhuma avaliação foi deixada por aqui ainda. Seja o primeiro!</p>
             ) : (
               album.reviews.map((rev) => {
-                // identifica dinamicamente se a review pertence ao usuário logado
                 const donoDaReview = typeof rev.userId === 'object' ? rev.userId?._id : rev.userId;
                 const ehDono = donoDaReview === userId;
 

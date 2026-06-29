@@ -36,13 +36,17 @@ export default function GerenciarUsuarios() {
     localStorage.setItem('userId', usuario._id);
     localStorage.setItem('userName', usuario.nome);
     localStorage.setItem('userTipo', (usuario.tipo || 'ouvinte').toLowerCase());
-    
-    window.location.href = '/'; 
+
+    // 🚀 A CORREÇÃO CRUCIAL AQUI:
+    // Sincroniza o usuário selecionado no formato que a Navbar espera ler!
+    localStorage.setItem('usuario', JSON.stringify(usuario));
+
+    window.location.href = '/';
   };
 
   const handleExcluirUsuario = (e: React.MouseEvent, id: string) => {
     e.stopPropagation(); // evita disparar a selecao do perfil ao deletar
-    
+
     if (window.confirm("Tem certeza que deseja deletar este perfil de usuário?")) {
       axios.delete(`http://localhost:5000/usuario/${id}`)
         .then(() => {
@@ -72,7 +76,7 @@ export default function GerenciarUsuarios() {
       padding: '80px 20px 40px 20px', // adicionado mais espaco apenas no topo para alinhar mais acima
       boxSizing: 'border-box'
     }}>
-      
+
       <h1 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '8px', letterSpacing: '-0.02em' }}>
         Quem está ouvindo?
       </h1>
@@ -85,7 +89,7 @@ export default function GerenciarUsuarios() {
       ) : usuarios.length === 0 ? (
         <div style={{ textAlign: 'center' }}>
           <p style={{ color: '#a7a7a7', marginBottom: '20px' }}>Nenhum perfil cadastrado.</p>
-          <button 
+          <button
             onClick={() => navigate('/inserir-usuario')}
             style={{ backgroundColor: '#1ed760', color: '#000', border: 'none', padding: '14px 32px', borderRadius: '500px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.9rem' }}
           >
@@ -155,8 +159,8 @@ export default function GerenciarUsuarios() {
                   height: '110px',
                   borderRadius: '50%',
                   backgroundColor: '#282828',
-                  backgroundImage: isHovered 
-                    ? 'radial-gradient(circle, #3e3e3e 0%, #282828 70%)' 
+                  backgroundImage: isHovered
+                    ? 'radial-gradient(circle, #3e3e3e 0%, #282828 70%)'
                     : 'radial-gradient(circle, #202020 0%, #181818 70%)',
                   display: 'flex',
                   alignItems: 'center',
@@ -189,7 +193,7 @@ export default function GerenciarUsuarios() {
                   }}>
                     {user.nome}
                   </h3>
-                  
+
                   <span style={{
                     color: '#b3b3b3',
                     fontSize: '0.75rem',

@@ -1,45 +1,71 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  
+  // 🚀 ESTADO DO REACT: Agora o componente vai "saber" quando o tipo mudar
+  const [tipoUsuario, setTipoUsuario] = useState<string>('');
 
-  const itensMenu = [
+  // 🚀 EFFECT: Toda vez que você mudar de página/perfil (location mudar), 
+  // ele relê o localStorage e força a Navbar a se atualizar sozinha!
+  useEffect(() => {
+    const usuarioBruto = localStorage.getItem('usuario');
+    if (usuarioBruto) {
+      try {
+        const dadosParseados = JSON.parse(usuarioBruto);
+        setTipoUsuario(dadosParseados.tipo || dadosParseados['user tipo'] || '');
+      } catch (e) {
+        setTipoUsuario(usuarioBruto.trim());
+      }
+    } else {
+      setTipoUsuario(''); // Se não houver usuário, limpa o tipo
+    }
+  }, [location]); // Escuta a troca de páginas/perfis
+
+  // 1. Itens padrão que TODO MUNDO vê
+  let itensMenu = [
     { nome: 'Início', rota: '/' },
-    { nome: 'Biblioteca', rota: '/biblioteca'},
+    { nome: 'Biblioteca', rota: '/biblioteca' },
     { nome: 'Músicas', rota: '/musicas', },
-    { nome: 'Criar Música', rota: '/inserir-musica', },
-    { nome: 'Criar Álbum', rota: '/inserir-album', },
   ];
+
+  // 2. Se o estado detectou 'artista', adiciona os botões de criação dinamicamente
+  if (tipoUsuario === 'artista') {
+    itensMenu.push(
+      { nome: 'Criar Música', rota: '/inserir-musica', },
+      { nome: 'Criar Álbum', rota: '/inserir-album', }
+    );
+  }
 
   return (
     <nav style={{
-      backgroundColor: 'transparent', // 🟢 Corrigido para transparente para não criar blocos pretos rígidos
-      height: '100%',            
+      backgroundColor: 'transparent',
+      height: '100%',
       display: 'flex',
       flexDirection: 'column',
       gap: '24px',
       boxSizing: 'border-box',
       fontFamily: "'Segoe UI', Roboto, sans-serif",
     }}>
-      
-      <div 
+
+      <div
         onClick={() => navigate('/')}
-        style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '12px', 
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
           cursor: 'pointer',
           padding: '0 8px',
           marginBottom: '8px'
         }}
       >
-        <img 
-          src="https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg" 
-          alt="Spotify Logo" 
-          style={{ width: '32px', height: '32px', objectFit: 'contain' }} 
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg"
+          alt="Spotify Logo"
+          style={{ width: '32px', height: '32px', objectFit: 'contain' }}
         />
         <h2 style={{ color: '#fff', margin: 0, fontSize: '1.3rem', fontWeight: '800', letterSpacing: '-0.03em' }}>
           Spotify
@@ -61,7 +87,7 @@ export default function Navbar() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '16px',
-                backgroundColor: isHovered ? '#1a1a1a' : 'transparent', // Adiciona feedback suave ao passar o mouse
+                backgroundColor: isHovered ? '#1a1a1a' : 'transparent',
                 border: 'none',
                 padding: '12px 16px',
                 borderRadius: '4px',
